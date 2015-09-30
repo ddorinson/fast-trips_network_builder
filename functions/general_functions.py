@@ -60,6 +60,7 @@ def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion
     to wgs84. Returns a two item tuple containing the longitude (x) and latitude (y) in wgs84. Coordinates
     must be in meters hence the default conversion factor- PSRC's are in state plane feet.  
     '''
+    print longitude, latitude
     # Remember long is x and lat is y!
     prj_wgs = Proj(init='epsg:4326')
     prj_sp = Proj(ESPG)
@@ -251,14 +252,16 @@ def get_transit_line_shape(transit_line):
             # Remember, X=long and Y=lat
             wgs84tuple = reproject_to_wgs84(coord[0], coord[1])
             shape_record = [transit_line.shape_id, wgs84tuple[1], wgs84tuple[0], x]
+            #shape_record = [transit_line.shape_id, coord[1], coord[0], x]
             shape_list.append(dict(zip(Shapes.columns, shape_record)))
             x = x + 1
     
-            # Get the JNode of the last link
+    # Get the JNode of the last link
     coord = segment.link.shape[-1] 
     wgs84tuple = reproject_to_wgs84(coord[0], coord[1])
     shape_record = [transit_line.shape_id, wgs84tuple[1], wgs84tuple[0], x]
     #shape_record = [transit_line.shape_id, coord[1], coord[0], x]
+    
     shape_list.append(dict(zip(Shapes.columns, shape_record)))
     return shape_list
 
