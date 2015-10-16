@@ -1,3 +1,4 @@
+import collections
 # This file contains input parameters imported by Fast-Trips Network Building scripts.   
 
 # Default dwell time in decimal minutes
@@ -21,8 +22,10 @@ banks_path = 'R:/SoundCast/releases/TransportationFutures2010/Banks/'
 
 # "end_time'-     The max time a route can leave it's first stop. Note that all stops will be completed even if they occur after end_time. 
 
-transit_network_tod = {'am' : {'transit_bank' : '6to7', 'start_time' : 300, 'end_time' : 540, 'tod_int' : 10000}, 
-                       'md' : {'transit_bank' :'9to10', 'start_time' : 540, 'end_time' : 900, 'tod_int': 20000 }}
+transit_network_tod = collections.OrderedDict()
+transit_network_tod['am'] = {'transit_bank' : '6to7', 'start_time' : 300, 'end_time' : 540, 'tod_int' : 10000}
+transit_network_tod['md'] = {'transit_bank' :'9to10', 'start_time' : 540, 'end_time' : 900, 'tod_int': 20000 }
+
 
 # The highway asssignment bank that is used to get link speed/time. 
 highway_assignment_tod = {5: '5to6', 6: '6to7', 7: '7to8', 8: '8to9', 9: '9to10', 10: '10to14', 11 : '10to14',
