@@ -8,6 +8,7 @@ import pandas as pd
 import itertools
 from itertools import groupby
 from itertools import chain
+
 from collections import defaultdict
 import collections
 from config.input_configuration import *
@@ -15,11 +16,14 @@ from functions.general_functions import *
 from gtfs_classes.FareRules import *
 from gtfs_classes.Trips import *
 from gtfs_classes.StopTimes import *
+from gtfs_classes.StopTimesFT import *
 from gtfs_classes.Shapes import *
 from gtfs_classes.Stops import *
+from gtfs_classes.StopsFT import *
 from gtfs_classes.Routes import *
+from gtfs_classes.Transfers import *
+from gtfs_classes.TransfersFT import *
 from gtfs_classes.GTFS_Utilities import *
-#from gtfs_classes.GTFSWrangler import *
 
 # Fare Files
 df_fares = pd.DataFrame.from_csv('inputs/fares/fare_id.csv', index_col=False)
@@ -142,9 +146,17 @@ def main():
     # Instantiate classes
     shapes = Shapes(shapes_list)
     stop_times = StopTimes(stop_times_list)
+    stop_times_ft = StopTimesFT(stop_times_list)
     trips = Trips(trips_list)
     stops = Stops(stops_list)
+    stops_ft = StopsFT(stops_list)
     routes = Routes(routes_list)
+
+    #create transfers, depdendent on stops class:
+    transfer_list = stop_to_stop_transfers(stops.data_frame, 2640)
+    transfers = Transfers(transfer_list)
+    transfers_ft = TransfersFT(transfer_list)
+
     
     # Drop duplicate records
     fare_rules.data_frame.drop_duplicates(inplace = True)
@@ -153,10 +165,13 @@ def main():
     # Write out text files
     shapes.data_frame.to_csv('outputs/shapes.txt', index = False)
     stop_times.data_frame.to_csv('outputs/stop_times.txt', index = False)
+    stop_times_ft.data_frame.to_csv('outputs/stop_times_ft.txt', index = False)
     stops.data_frame.to_csv('outputs/stops.txt', index = False)
+    stops_ft.data_frame.to_csv('outputs/stops_ft.txt', index = False)
     trips.data_frame.to_csv('outputs/trips.txt', index = False)
     fare_rules.data_frame.to_csv('outputs/fare_rules.txt', index = False)
     routes.data_frame.to_csv('outputs/routes.txt', index = False)
-
+    transfers.data_frame.to_csv('outputs/transfers.txt', index = False)
+    transfers_ft.data_frame.to_csv('outputs/transfers_ft.txt', index = False)
 if __name__ == "__main__":
     main()

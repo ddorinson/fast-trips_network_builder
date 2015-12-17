@@ -6,6 +6,7 @@ import time
 from config.input_configuration import *
 import itertools
 from itertools import groupby
+from itertools import combinations
 from gtfs_classes.Trips import *
 from gtfs_classes.StopTimes import *
 from gtfs_classes.FareRules import *
@@ -15,6 +16,7 @@ from gtfs_classes.Routes import *
 from pyproj import Proj, transform
 import random 
 import geocoder
+import pyproj
 
 
 def get_emme_stop_sequence(emme_transit_line):
@@ -427,3 +429,23 @@ def calc_transit_time(link_i, link_j, tod, ttf, network_dictionary):
         raise ValueError('Transit ID ' + str(transit_segment.line) + ' and segment number ' + str(transit_segment.number) + 'has a speed lower than 0')
     
     return transit_time
+
+def stop_to_stop_transfers(stops_df, max_distance_in_feet):
+    '''
+    Creates stop to stop transfers DataFrame for transfers.txt. Limits stops pairs by applying max_distance_in_feet.  
+    '''
+    
+    # convert buffer to meters becayse pyproj.Geod.inv operates in meters:
+    buffer = max_distance_in_feet * 0.3048
+    points = stops_df.as_matrix(columns=['stop_lon', 'stop_lat', 'stop_id'])
+    geod = pyproj.Geod(ellps='WGS84')
+    
+    # get all stop to stop combos and distances:
+    x = [[geod.inv(x[0], x[1], y[0], y[1])[2], x[2], y[2]] for x, y in combinations(points, 2) if geod.inv(x[0], x[1], y[0], y[1])[2] <= buffer] 
+    
+    # fill list (data) with records that are within distance buffer. convert distance back to feet:
+    data = []
+    for record in x:
+        data.append({'distance' : record[0] * 3.28084, 'from_stop_id' : record[1], 'to_stop_id' : record[2], 'transfer_type' : 0})
+        data.append({'distance' : record[0] * 3.28084, 'from_stop_id' : record[2], 'to_stop_id' : record[1], 'transfer_type' : 0})
+    return data
