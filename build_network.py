@@ -11,7 +11,7 @@ from itertools import chain
 
 from collections import defaultdict
 import collections
-from config.input_configuration import *
+from config.input_configuration_test_network import *
 from functions.general_functions import *
 from gtfs_classes.FareRules import *
 from gtfs_classes.Trips import *
@@ -22,15 +22,26 @@ from gtfs_classes.Stops import *
 from gtfs_classes.StopsFT import *
 from gtfs_classes.Routes import *
 from gtfs_classes.Transfers import *
+from gtfs_classes.Calendar import *
+from gtfs_classes.Agency import *
 from gtfs_classes.TransfersFT import *
 from gtfs_classes.GTFS_Utilities import *
+from gtfs_classes.AccessLinks import *
+
+walk_links_built = False  
+test_network = True
+if test_network:
+    inputs_path = 'test_inputs/'
+else:
+    inputs_path = 'inputs/'
 
 # Fare Files
-df_fares = pd.DataFrame.from_csv('inputs/fares/fare_id.csv', index_col=False)
-df_stops_zones = pd.DataFrame.from_csv('inputs/fares/stop_zones.csv', index_col=False)
+if not test_network:
+    df_fares = pd.DataFrame.from_csv(inputs_path + 'fares/fare_id.csv', index_col=False)
+    df_stops_zones = pd.DataFrame.from_csv(inputs_path + 'fares/stop_zones.csv', index_col=False)
 
 # Shape ID to model route crosswalk: 
-df_shape_id_crosswalk = pd.DataFrame.from_csv('inputs/gtfs_shapeID_to_lineID.csv', index_col = False)
+df_shape_id_crosswalk = pd.DataFrame.from_csv(inputs_path + 'gtfs_shapeID_to_lineID.csv', index_col = False)
 
 # Model routes to shape_id can be one to many; create a list of shape_ids for each model route
 shapes = {k: list(v) for k,v in df_shape_id_crosswalk.groupby("model_shape_id")["gtfs_shape_id"]}
@@ -51,78 +62,88 @@ subset = unique_rows[['feed', 'service_id']]
 schedule_tuples = [tuple(x) for x in subset.values]
 
 
-def main():
-    # Creat outputs dir if one does not exist
-    if not os.path.exists('outputs'):
-        os.makedirs('outputs')
+#def main():
+#global walk_links_built
 
-    network_dict = {}
-    last_departure_dict = {}
-    # Lists to hold stop_times and trips records
-    stop_times_list = []
-    stops = []
-    stops_list = []
-    trips_list = []
-    shapes_list = []
-    routes_list = []
-    fare_rules = FareRules()
+# Creat outputs dir if one does not exist
+if not os.path.exists('outputs'):
+    os.makedirs('outputs')
 
-    # Generates a unique ID 
-    id_generator = generate_unique_id(range(1,999999))
+network_dict = {}
+last_departure_dict = {}
+# Lists to hold stop_times and trips records
+stop_times_list = []
+stops = []
+stops_list = []
+trips_list = []
+shapes_list = []
+routes_list = []
+fare_rules = FareRules()
+
+# Generates a unique ID 
+id_generator = generate_unique_id(range(1,999999))
     
-    # Load all the networks into the network_dict
-    for tod in highway_assignment_tod.itervalues():
+# Load all the networks into the network_dict
+for tod in highway_assignment_tod.itervalues():
         
         
-        with _eb.Emmebank(banks_path + tod + '/emmebank') as emmebank:
-            current_scenario = emmebank.scenario(1002)
-            network = current_scenario.get_network()
-            network_dict[tod] = network
+    with _eb.Emmebank(banks_path + tod + '/emmebank') as emmebank:
+        current_scenario = emmebank.scenario(1002)
+        network = current_scenario.get_network()
+        network_dict[tod] = network
 
-    for tod, my_dict in transit_network_tod.iteritems():
-        # A dictionary to hold an instance of GTFS_Utilities for each feed
-        gtfs_dict = {}
+for tod, my_dict in transit_network_tod.iteritems():
+    # A dictionary to hold an instance of GTFS_Utilities for each feed
+    gtfs_dict = {}
         
-        # Populate gtfs_dict
-        for feed in schedule_tuples:
-            gtfs_utils = GTFS_Utilities('inputs/published_gtfs/' + feed[0], my_dict['start_time'], my_dict['end_time'], feed[1])
-            gtfs_dict[feed[0]] = gtfs_utils
+    # Populate gtfs_dict
+    for feed in schedule_tuples:
+        gtfs_utils = GTFS_Utilities(inputs_path + 'published_gtfs/' + feed[0], my_dict['start_time'], my_dict['end_time'], feed[1])
+        gtfs_dict[feed[0]] = gtfs_utils
         
      
-        # Get the am or md transit network: 
-        transit_network = network_dict[my_dict['transit_bank']]
-        transit_attributes_df = pd.DataFrame.from_csv('inputs/' + tod + '_line_attributes.csv', index_col=False)
-        print transit_attributes_df
+    # Get the am or md transit network: 
+    transit_network = network_dict[my_dict['transit_bank']]
 
-        transit_network.create_attribute('TRANSIT_LINE', 'shape_id')
-        transit_network.create_attribute('TRANSIT_LINE', 'route_id')
-        transit_network.create_attribute('TRANSIT_LINE', 'short_name')
+    # Get TAZ Nodes for walk access, only need to do once:
+    if not walk_links_built:
+        taz_list = get_taz_nodes(network)
+        walk_links_built = True
+        print taz_list
+    transit_attributes_df = pd.DataFrame.from_csv(inputs_path + tod + '_line_attributes.csv', index_col=False)
+    print transit_attributes_df
 
-        # Schedule each route and create data structure (list of dictionaries) for trips and stop_times. 
-        for transit_line in transit_network.transit_lines():
-            configure_transit_line_attributes(transit_line, transit_attributes_df)
-            departure_times = []
+    transit_network.create_attribute('TRANSIT_LINE', 'shape_id')
+    transit_network.create_attribute('TRANSIT_LINE', 'route_id')
+    transit_network.create_attribute('TRANSIT_LINE', 'short_name')
+
+    # Schedule each route and create data structure (list of dictionaries) for trips and stop_times. 
+    for transit_line in transit_network.transit_lines():
+        configure_transit_line_attributes(transit_line, transit_attributes_df)
+        departure_times = []
             
-            # Check if departure times for this route come from published GTFS shape_ids:
-            if transit_line.shape_id in shape_id_dict.keys():
-                feed = shape_id_dict[transit_line.shape_id]['feed']
-                ids = shape_id_dict[transit_line.shape_id]['shape_ids']
-                departure_times = gtfs_dict[feed].get_departure_times_by_ids(ids)
+        # Check if departure times for this route come from published GTFS shape_ids:
+        if transit_line.shape_id in shape_id_dict.keys():
+            feed = shape_id_dict[transit_line.shape_id]['feed']
+            ids = shape_id_dict[transit_line.shape_id]['shape_ids']
+            departure_times = gtfs_dict[feed].get_departure_times_by_ids(ids)
                
-            ###### ROUTES ######
-            routes_list.extend(get_route_record(transit_line))
+        ###### ROUTES ######
+        routes_list.extend(get_route_record(transit_line))
             
-            ###### SHAPES ######
-            shapes_list.extend(get_transit_line_shape(transit_line))
+        ###### SHAPES ######
+        shapes_list.extend(get_transit_line_shape(transit_line))
       
-            ###### FARES ######
-            # Get a list of ordered stops for this route
-            list_of_stops = get_emme_stop_sequence(transit_line)
+        ###### FARES ######
+        # Get a list of ordered stops for this route
+        list_of_stops = get_emme_stop_sequence(transit_line)
             
-            # Add to stops_list for writing out stops.txt later
-            stops.extend(list_of_stops)
+        # Add to stops_list for writing out stops.txt later
+        stops.extend(list_of_stops)
 
-            # Get the zones
+        # Fare logic specific to PSRC. Don't do following on test network:
+        # Get the zones
+        if not test_network:
             zone_list = get_zones_from_stops(list_of_stops, df_stops_zones)
     
             # Remove duplicates in sequence. [1,2,2,1] becomes [1,2,1]
@@ -134,44 +155,57 @@ def main():
             # Return instance of fare_rules with populated dataframe
             populate_fare_rule(zone_combos, fare_rules.data_frame, transit_line, df_fares)
 
-            ###### Schedule ######
-            schedule_route(my_dict['start_time'], my_dict['end_time'], transit_line, id_generator, stop_times_list, trips_list, network_dict, 
-                           last_departure_dict, departure_times)
+        ###### Schedule ######
+        schedule_route(my_dict['start_time'], my_dict['end_time'], transit_line, id_generator, stop_times_list, trips_list, network_dict, 
+                        last_departure_dict, departure_times)
 
-    ###### STOPS ######
-    stops = list(set(stops))
-    stops_list = popualate_stops(transit_network, stops)
+###### STOPS ######
+stops = list(set(stops))
+stops_list = popualate_stops(transit_network, stops)
    
             
-    # Instantiate classes
-    shapes = Shapes(shapes_list)
-    stop_times = StopTimes(stop_times_list)
-    stop_times_ft = StopTimesFT(stop_times_list)
-    trips = Trips(trips_list)
-    stops = Stops(stops_list)
-    stops_ft = StopsFT(stops_list)
-    routes = Routes(routes_list)
+# Instantiate classes
+shapes = Shapes(shapes_list)
+stop_times = StopTimes(stop_times_list)
+stop_times_ft = StopTimesFT(stop_times_list)
+trips = Trips(trips_list)
+stops = Stops(stops_list)
+stops_ft = StopsFT(stops_list)
+routes = Routes(routes_list)
+agency = Agency(agency_list)
+calendar = Calendar(calender_list)
+    
+#access links:
+#access_links_list = get_access_links(taz_list, stops.data_frame, 2640)
+access_links = AccessLinks(get_access_links(taz_list, stops.data_frame, 2640))
+#print test
+access_links.data_frame.to_csv('outputs/access_links.txt', index = False)
+    
+#create transfers, depdendent on stops class:
+transfer_list = stop_to_stop_transfers(stops.data_frame, 2640)
+transfers = Transfers(transfer_list)
+transfers_ft = TransfersFT(transfer_list)
 
-    #create transfers, depdendent on stops class:
-    transfer_list = stop_to_stop_transfers(stops.data_frame, 2640)
-    transfers = Transfers(transfer_list)
-    transfers_ft = TransfersFT(transfer_list)
 
     
-    # Drop duplicate records
+# Drop duplicate records
+if not test_network:
     fare_rules.data_frame.drop_duplicates(inplace = True)
-    routes.data_frame.drop_duplicates(inplace = True)
-    routes.data_frame = routes.data_frame.groupby('route_id').first().reset_index()
-    # Write out text files
-    shapes.data_frame.to_csv('outputs/shapes.txt', index = False)
-    stop_times.data_frame.to_csv('outputs/stop_times.txt', index = False)
-    stop_times_ft.data_frame.to_csv('outputs/stop_times_ft.txt', index = False)
-    stops.data_frame.to_csv('outputs/stops.txt', index = False)
-    stops_ft.data_frame.to_csv('outputs/stops_ft.txt', index = False)
-    trips.data_frame.to_csv('outputs/trips.txt', index = False)
     fare_rules.data_frame.to_csv('outputs/fare_rules.txt', index = False)
-    routes.data_frame.to_csv('outputs/routes.txt', index = False)
-    transfers.data_frame.to_csv('outputs/transfers.txt', index = False)
-    transfers_ft.data_frame.to_csv('outputs/transfers_ft.txt', index = False)
-if __name__ == "__main__":
-    main()
+routes.data_frame.drop_duplicates(inplace = True)
+routes.data_frame = routes.data_frame.groupby('route_id').first().reset_index()
+# Write out text files
+shapes.data_frame.to_csv('outputs/shapes.txt', index = False)
+stop_times.data_frame.to_csv('outputs/stop_times.txt', index = False)
+stop_times_ft.data_frame.to_csv('outputs/stop_times_ft.txt', index = False)
+stops.data_frame.to_csv('outputs/stops.txt', index = False)
+stops_ft.data_frame.to_csv('outputs/stops_ft.txt', index = False)
+trips.data_frame.to_csv('outputs/trips.txt', index = False)
+    
+routes.data_frame.to_csv('outputs/routes.txt', index = False)
+transfers.data_frame.to_csv('outputs/transfers.txt', index = False)
+transfers_ft.data_frame.to_csv('outputs/transfers_ft.txt', index = False)
+agency.data_frame.to_csv('outputs/agency.txt', index = False)
+calendar.data_frame.to_csv('outputs/calendar.txt', index = False)
+#if __name__ == "__main__":
+#    main()
