@@ -1,0 +1,7 @@
+model_shape_id,gtfs_shape_id,feed,service_id
+A_EB,A_EB,TNT,TNT
+A_WB,A_WB,TNT,TNT
+B_EB,B_EB,TNT,TNT
+B_WB,B_WB,TNT,TNT
+C_NB,C_NB,TNT,TNT
+C_SB,C_SB,TNT,TNT

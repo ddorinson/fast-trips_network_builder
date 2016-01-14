@@ -1,0 +1,4 @@
+fare_id,fare_class,start_time,end_time
+bus_local_fare_id,bus_local_fare_class,000001,235959
+bus_express_fare_id,bus_express_fare_class,000001,235959
+rail_fare_id,rail_fare_class,000001,235959

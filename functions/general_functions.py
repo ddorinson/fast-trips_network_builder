@@ -3,7 +3,7 @@ import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
 import numpy as np
 import time
-from config.input_configuration import *
+from config.input_configuration_test_network import *
 import itertools
 from itertools import groupby
 from itertools import combinations
@@ -166,7 +166,6 @@ def get_zones_from_stops(list_of_stops, df_stops_zones):
     zone_list = df['ZoneID'].tolist()
     
     return zone_list
-    
 
 def popualate_stops(network, stops):
     '''
@@ -175,6 +174,8 @@ def popualate_stops(network, stops):
     stops_list = []
     for stop in stops:
         node = network.node(stop)
+        #location = geolocator.reverse(node.x, node.y)
+        #print location.address
         wgs84tuple = reproject_to_wgs84(node.x, node.y)
         #geocode = geocoder.google([wgs84tuple[1], wgs84tuple[0]], method="reverse")
         #try:
@@ -429,6 +430,29 @@ def calc_transit_time(link_i, link_j, tod, ttf, network_dictionary):
         raise ValueError('Transit ID ' + str(transit_segment.line) + ' and segment number ' + str(transit_segment.number) + 'has a speed lower than 0')
     
     return transit_time
+
+def get_access_links(taz_list, stops_df, max_distance_in_feet):
+    geod = pyproj.Geod(ellps='WGS84')
+    buffer = max_distance_in_feet * 0.3048
+    #taz_points = taz_df.as_matrix(columns=['lon', 'stop_lat', 'taz'])
+    bus_stop_points = stops_df.as_matrix(columns=['stop_lon', 'stop_lat', 'stop_id'])
+    access_links_list = []
+    for row in taz_list:
+        x = [[geod.inv(row[2], row[1], y[0], y[1])[2], row[0], y[2]] for y in bus_stop_points if geod.inv(row[2], row[1], y[0], y[1])[2] <= buffer]
+        #x = [[geod.inv(row[2], row[1], y[0], y[1])[2], row[0], y[2]] for y in bus_stop_points]
+        print x
+        for record in x:
+            access_links_list.append({'distance' : record[0] * 3.28084, 'taz' : record[1], 'stop_id' : record[2]}) 
+    return access_links_list
+
+def get_taz_nodes(network):
+    taz_list = []
+    #build tuple: (taz_id, lat, long)
+    for node in network.nodes():
+        if node.is_centroid:
+            wgs84tuple = reproject_to_wgs84(node.x, node.y)
+            taz_list.append((node.id, wgs84tuple[1], wgs84tuple[0]))
+    return taz_list
 
 def stop_to_stop_transfers(stops_df, max_distance_in_feet):
     '''

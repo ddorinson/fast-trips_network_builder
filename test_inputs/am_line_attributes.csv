@@ -1,0 +1,7 @@
+id,short_name,shape_id,route_id
+1,Bus_A_Loc,c,A
+2,Bus_A_Loc,A_WB,A
+3,Bus_B_Exp,B_EB,B
+4,Bus_B_Exp,B_WB,B
+5,Rail_C,C_NB,C
+6,Rail_C,C_SB,C
