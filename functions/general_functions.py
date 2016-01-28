@@ -13,6 +13,7 @@ from gtfs_classes.FareRules import *
 from gtfs_classes.Shapes import *
 from gtfs_classes.Stops import *
 from gtfs_classes.Routes import *
+from gtfs_classes.RoutesFT import *
 from pyproj import Proj, transform
 import random 
 import geocoder
@@ -56,6 +57,8 @@ def configure_transit_line_attributes(transit_line, df_network_atts):
     transit_line.shape_id = row['shape_id'].iloc[0]
     transit_line.short_name = row['short_name'].iloc[0]
     transit_line.long_name = row['long_name'].iloc[0]
+    transit_line.ft_mode = row['ft_mode'].iloc[0]
+    transit_line.proof_of_payment = row['proof_of_payment'].iloc[0]
 
 def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
     '''
@@ -242,6 +245,15 @@ def get_route_record(transit_line, agency_id):
                     route_type_dict[transit_line.mode.id]]
     route_list.append(dict(zip(Routes.columns, route_record)))
     return route_list
+
+def get_route_ft_record(transit_line):
+    '''
+    Creates a transit record for routes.txt
+    '''
+    route_ft_list = []
+    route_ft_record = [transit_line.route_id, transit_line.ft_mode, transit_line.proof_of_payment]
+    route_ft_list.append(dict(zip(RoutesFT.columns, route_ft_record)))
+    return route_ft_list
 
 def get_transit_line_shape(transit_line):
     """

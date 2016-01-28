@@ -21,6 +21,7 @@ from gtfs_classes.Shapes import *
 from gtfs_classes.Stops import *
 from gtfs_classes.StopsFT import *
 from gtfs_classes.Routes import *
+from gtfs_classes.RoutesFT import *
 from gtfs_classes.Transfers import *
 from gtfs_classes.Calendar import *
 from gtfs_classes.Agency import *
@@ -82,6 +83,7 @@ stops_list = []
 trips_list = []
 shapes_list = []
 routes_list = []
+routes_ft_list = []
 fare_rules = FareRules()
 
 # Generates a unique ID 
@@ -117,10 +119,13 @@ for tod, my_dict in transit_network_tod.iteritems():
     transit_attributes_df = pd.DataFrame.from_csv(inputs_path + tod + '_line_attributes.csv', index_col=False)
     print transit_attributes_df
 
+    # To Do: Store in a dict and turn this into a loop
     transit_network.create_attribute('TRANSIT_LINE', 'shape_id')
     transit_network.create_attribute('TRANSIT_LINE', 'route_id')
     transit_network.create_attribute('TRANSIT_LINE', 'short_name')
     transit_network.create_attribute('TRANSIT_LINE', 'long_name')
+    transit_network.create_attribute('TRANSIT_LINE', 'ft_mode')
+    transit_network.create_attribute('TRANSIT_LINE', 'proof_of_payment')
 
     # Schedule each route and create data structure (list of dictionaries) for trips and stop_times. 
     for transit_line in transit_network.transit_lines():
@@ -135,6 +140,7 @@ for tod, my_dict in transit_network_tod.iteritems():
                
         ###### ROUTES ######
         routes_list.extend(get_route_record(transit_line, agency_list[0]['agency_id']))
+        routes_ft_list.extend(get_route_ft_record(transit_line))
             
         ###### SHAPES ######
         shapes_list.extend(get_transit_line_shape(transit_line))
@@ -177,6 +183,7 @@ trips = Trips(trips_list)
 stops = Stops(stops_list)
 stops_ft = StopsFT(stops_list)
 routes = Routes(routes_list)
+routes_ft = RoutesFT(routes_ft_list)
 agency = Agency(agency_list)
 calendar = Calendar(calender_list)
     
@@ -211,6 +218,7 @@ stops_ft.data_frame.to_csv('outputs/stops_ft.txt', index = False)
 trips.data_frame.to_csv('outputs/trips.txt', index = False)
     
 routes.data_frame.to_csv('outputs/routes.txt', index = False)
+routes_ft.data_frame.to_csv('outputs/routes_ft.txt', index = False)
 transfers.data_frame.to_csv('outputs/transfers.txt', index = False)
 transfers_ft.data_frame.to_csv('outputs/transfers_ft.txt', index = False)
 agency.data_frame.to_csv('outputs/agency.txt', index = False)
