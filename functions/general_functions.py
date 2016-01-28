@@ -55,6 +55,7 @@ def configure_transit_line_attributes(transit_line, df_network_atts):
     transit_line.route_id = row['route_id'].iloc[0]
     transit_line.shape_id = row['shape_id'].iloc[0]
     transit_line.short_name = row['short_name'].iloc[0]
+    transit_line.long_name = row['long_name'].iloc[0]
 
 def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
     '''
@@ -232,12 +233,12 @@ def dec_mins_to_HHMMSS(time_in_decimal_minutes):
     """
     return time.strftime("%H:%M:%S", time.gmtime(time_in_decimal_minutes * 60))
 
-def get_route_record(transit_line):
+def get_route_record(transit_line, agency_id):
     '''
     Creates a transit record for routes.txt
     '''
     route_list = []
-    route_record = [transit_line.route_id, transit_line.description, transit_line.short_name, transit_line.short_name, 
+    route_record = [transit_line.route_id, agency_id, transit_line.short_name, transit_line.long_name, transit_line.description,  
                     route_type_dict[transit_line.mode.id]]
     route_list.append(dict(zip(Routes.columns, route_record)))
     return route_list

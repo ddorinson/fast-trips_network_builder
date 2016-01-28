@@ -1,2 +1,2 @@
 agency_id,agency_name,agency_url,agency_timezone
-TNT,TestNetTransit,http://www.sftca.org,US/Pacific
+tntransit,tntransit,http://www.sfcta.org,US/Pacific

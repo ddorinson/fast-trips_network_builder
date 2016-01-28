@@ -1,7 +1,7 @@
-id,short_name,shape_id,route_id
-1,Bus_A_Loc,c,A
-2,Bus_A_Loc,A_WB,A
-3,Bus_B_Exp,B_EB,B
-4,Bus_B_Exp,B_WB,B
-5,Rail_C,C_NB,C
-6,Rail_C,C_SB,C
+id,long_name,shape_id,route_id,short_name
+1,Bus_A_Loc,TNT_A_EB,TNT_A_EB,A
+2,Bus_A_Loc,TNT_A_WB,TNT_A_WB,A
+3,Bus_B_Exp,TNT_B_EB,TNT_B_EB,B
+4,Bus_B_Exp,TNT_B_WB,TNT_B_WB,B
+5,Rail_C,TNT_C_NB,TNT_C_NB,C
+6,Rail_C,TNT_C_SB,TNT_C_SB,C

@@ -1,7 +1,7 @@
-from_fare_class,to_fare_class,is_flat_fare,transfer_rule
-bus_local_fare_class,bus_express_fare_class,TRUE,2.5
-bus_local_fare_class,rail_fare_class,TRUE,3.5
-bus_express_fare_class,bus_local_fare_class,TRUE,1.5
-bus_express_fare_class,rail_fare_class,TRUE,3.5
-rail_fare_class,bus_local_fare_class,TRUE,1.5
-rail_fare_class,bus_express_fare_class,TRUE,2.5
+from_fare_class,to_fare_class,is_flat_fee,transfer_rule
+tntransit_local_bus_allday,tntransit_express_bus_allday,1,2.50
+tntransit_local_bus_allday,tntransit_heavy_rail_allday,1,3.50
+tntransit_express_bus_allday,tntransit_local_bus_allday,1,1.50
+tntransit_express_bus_allday,tntransit_heavy_rail_allday,1,3.50
+tntransit_heavy_rail_allday,tntransit_local_bus_allday,1,1.50
+tntransit_heavy_rail_allday,tntransit_express_bus_allday,1,2.50

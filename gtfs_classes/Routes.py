@@ -6,7 +6,7 @@ class Routes(object):
     """
     Routes. 
     """
-    columns = ['route_id', 'route_short_name', 'route_long_name', 'route_desc', 'route_type'] 
+    columns = ['route_id', 'agency_id', 'route_short_name', 'route_long_name', 'route_desc', 'route_type'] 
     def __init__(self, data):
         """
         Constructor to populate DataFrame from list of dictionaries where each dictionary holds 

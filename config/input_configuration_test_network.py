@@ -10,8 +10,8 @@ use_published_departure_times = True
 # Location of assingment banks
 banks_path = 'D:/Stefan/fast_trips_working/test/Banks/'
 
-agency_list = [{'agency_id' : 'TNT', 'agency_name' : 'TestNetTransit', 'agency_url' : "http://www.sftca.org", 'agency_timezone' : 'US/Pacific'}]
-calender_list = [{'service_id' : 'TNT', 'monday' : 1 ,'tuesday' : 1,'wednesday' : 1, 'thursday' : 1,'friday' : 1,'saturday' : 1, 'sunday' : 0, 
+agency_list = [{'agency_id' : 'tntransit', 'agency_name' : 'TestNetTransit', 'agency_url' : "http://www.sftca.org", 'agency_timezone' : 'US/Pacific'}]
+calender_list = [{'service_id' : 'tntransit', 'monday' : 1 ,'tuesday' : 1,'wednesday' : 1, 'thursday' : 1,'friday' : 1,'saturday' : 1, 'sunday' : 0, 
             'start_date' : '20150101', 'end_date' : '20151231'}]
 
 ##### Network Dictionaries:

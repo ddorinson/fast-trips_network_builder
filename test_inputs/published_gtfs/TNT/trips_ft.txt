@@ -115,8 +115,8 @@ trip_id,vehicle_name
 114,bus
 115,bus
 116,bus
-117,train
-118,train
+117,bus
+118,bus
 119,train
 120,train
 121,train
@@ -151,3 +151,5 @@ trip_id,vehicle_name
 150,train
 151,train
 152,train
+153,train
+154,train

@@ -36,9 +36,13 @@ else:
     inputs_path = 'inputs/'
 
 # Fare Files
-if not test_network:
-    df_fares = pd.DataFrame.from_csv(inputs_path + 'fares/fare_id.csv', index_col=False)
-    df_stops_zones = pd.DataFrame.from_csv(inputs_path + 'fares/stop_zones.csv', index_col=False)
+#if not test_network:
+df_fares = pd.DataFrame.from_csv(inputs_path + 'fares/fare_id.csv', index_col=False)
+df_stops_zones = pd.DataFrame.from_csv(inputs_path + 'fares/stop_zones.csv', index_col=False)
+df_fare_rules_ft = pd.DataFrame.from_csv(inputs_path + 'fares/fare_rules_ft.csv', index_col=False)
+df_fare_attributes = pd.DataFrame.from_csv(inputs_path + 'fares/fare_attributes.csv', index_col=False)
+df_fare_attributes_ft = pd.DataFrame.from_csv(inputs_path + 'fares/fare_attributes_ft.csv', index_col=False)
+
 
 # Shape ID to model route crosswalk: 
 df_shape_id_crosswalk = pd.DataFrame.from_csv(inputs_path + 'gtfs_shapeID_to_lineID.csv', index_col = False)
@@ -116,6 +120,7 @@ for tod, my_dict in transit_network_tod.iteritems():
     transit_network.create_attribute('TRANSIT_LINE', 'shape_id')
     transit_network.create_attribute('TRANSIT_LINE', 'route_id')
     transit_network.create_attribute('TRANSIT_LINE', 'short_name')
+    transit_network.create_attribute('TRANSIT_LINE', 'long_name')
 
     # Schedule each route and create data structure (list of dictionaries) for trips and stop_times. 
     for transit_line in transit_network.transit_lines():
@@ -129,7 +134,7 @@ for tod, my_dict in transit_network_tod.iteritems():
             departure_times = gtfs_dict[feed].get_departure_times_by_ids(ids)
                
         ###### ROUTES ######
-        routes_list.extend(get_route_record(transit_line))
+        routes_list.extend(get_route_record(transit_line, agency_list[0]['agency_id']))
             
         ###### SHAPES ######
         shapes_list.extend(get_transit_line_shape(transit_line))
@@ -143,17 +148,17 @@ for tod, my_dict in transit_network_tod.iteritems():
 
         # Fare logic specific to PSRC. Don't do following on test network:
         # Get the zones
-        if not test_network:
-            zone_list = get_zones_from_stops(list_of_stops, df_stops_zones)
+        #if not test_network:
+        zone_list = get_zones_from_stops(list_of_stops, df_stops_zones)
     
-            # Remove duplicates in sequence. [1,2,2,1] becomes [1,2,1]
-            zone_list = [x[0] for x in groupby(zone_list)]
+        # Remove duplicates in sequence. [1,2,2,1] becomes [1,2,1]
+        zone_list = [x[0] for x in groupby(zone_list)]
        
-            # Get zone combos. Note: mode 'f' for ferry gets special treatment for PSRC. See function def.
-            zone_combos = get_zone_combos(zone_list, transit_line.mode.id)
+        # Get zone combos. Note: mode 'f' for ferry gets special treatment for PSRC. See function def.
+        zone_combos = get_zone_combos(zone_list, transit_line.mode.id)
     
-            # Return instance of fare_rules with populated dataframe
-            populate_fare_rule(zone_combos, fare_rules.data_frame, transit_line, df_fares)
+        # Return instance of fare_rules with populated dataframe
+        populate_fare_rule(zone_combos, fare_rules.data_frame, transit_line, df_fares)
 
         ###### Schedule ######
         schedule_route(my_dict['start_time'], my_dict['end_time'], transit_line, id_generator, stop_times_list, trips_list, network_dict, 
@@ -189,9 +194,12 @@ transfers_ft = TransfersFT(transfer_list)
 
     
 # Drop duplicate records
-if not test_network:
-    fare_rules.data_frame.drop_duplicates(inplace = True)
-    fare_rules.data_frame.to_csv('outputs/fare_rules.txt', index = False)
+#if not test_network:
+fare_rules.data_frame.drop_duplicates(inplace = True)
+fare_rules.data_frame.to_csv('outputs/fare_rules.txt', index = False)
+df_fare_rules_ft.to_csv('outputs/fare_rules_ft.txt', index = False)
+df_fare_attributes.to_csv('outputs/fare_attributes.txt', index = False)
+df_fare_attributes_ft.to_csv('outputs/fare_attributes_ft.txt', index = False)
 routes.data_frame.drop_duplicates(inplace = True)
 routes.data_frame = routes.data_frame.groupby('route_id').first().reset_index()
 # Write out text files

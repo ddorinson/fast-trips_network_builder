@@ -125,3 +125,4 @@ class GTFS_Utilities(object):
         
         return seconds
 
+    
