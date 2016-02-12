@@ -32,6 +32,10 @@ class GTFS_Utilities(object):
         self.df_trips_stop_times = self._get_trips_stop_times(start_time, end_time, service_id)
         self.departure_times = self._get_departure_times()
         
+        # A dictionary where key is stop_id and value is a list of route_ids that serve the stop: 
+        self.routes_by_stop = {k: list(set(g["route_id"].tolist())) 
+                               for k,g in self.df_trips_stop_times.groupby("stop_id")}
+        
         
     def _get_trips_stop_times(self, start, end, service_id):
         """
@@ -125,4 +129,4 @@ class GTFS_Utilities(object):
         
         return seconds
 
-    
+#test = GTFS_Utilities(r'W:\gis\projects\CentersTransit2015\walkscore\GTFS\Metro', 0, 1440, 'WEEKDAY')

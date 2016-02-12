@@ -8,6 +8,7 @@ import itertools
 from itertools import groupby
 from itertools import combinations
 from gtfs_classes.Trips import *
+from gtfs_classes.TripsFT import *
 from gtfs_classes.StopTimes import *
 from gtfs_classes.FareRules import *
 from gtfs_classes.Shapes import *
@@ -59,6 +60,7 @@ def configure_transit_line_attributes(transit_line, df_network_atts):
     transit_line.long_name = row['long_name'].iloc[0]
     transit_line.ft_mode = row['ft_mode'].iloc[0]
     transit_line.proof_of_payment = row['proof_of_payment'].iloc[0]
+    transit_line.vehicle_name = row['vehicle_name'].iloc[0]
 
 def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
     '''
@@ -282,7 +284,7 @@ def get_transit_line_shape(transit_line):
     shape_list.append(dict(zip(Shapes.columns, shape_record)))
     return shape_list
 
-def schedule_route(start_time, end_time, transit_line, trip_id_generator, stop_times_list, trips_list, network_dictionary, prev_last_departure_dict, departure_times):
+def schedule_route(start_time, end_time, transit_line, trip_id_generator, stop_times_list, trips_list, trips_ft_list, network_dictionary, prev_last_departure_dict, departure_times):
     '''
     Builds a schedule for a given route, for a given time window using stop to stop travel times. First Stop departure times can be passed in as a list (departure_times) 
     otherwise they will be determined using the get_random_departure_time function. Creates a record for each trip and all stop_times for each trip, which are stored in 
@@ -314,11 +316,13 @@ def schedule_route(start_time, end_time, transit_line, trip_id_generator, stop_t
        trip_id = trip_id_generator.next()
        
        # To Do: need a route_id attribute- using transit_line.id for now
-       # Using 1 for service_id
+       # Populate trips record
        trips_record = [transit_line.route_id, SERVICE_ID, trip_id, transit_line.shape_id]
        trips_list.append(dict(zip(Trips.columns, trips_record)))
-
-       #departure_time = first_departure
+       
+       # Populate trips_ft record
+       trips_ft_record = [trip_id, transit_line.vehicle_name]
+       trips_ft_list.append(dict(zip(TripsFT.columns, trips_ft_record)))
        
        order = 1
        for segment in transit_line.segments():
@@ -455,7 +459,7 @@ def get_access_links(taz_list, stops_df, max_distance_in_feet):
         #x = [[geod.inv(row[2], row[1], y[0], y[1])[2], row[0], y[2]] for y in bus_stop_points]
         print x
         for record in x:
-            access_links_list.append({'distance' : record[0] * 3.28084, 'taz' : record[1], 'stop_id' : record[2]}) 
+            access_links_list.append({'taz' : record[1], 'stop_id' : record[2], 'dist' : record[0] * 3.28084}) 
     return access_links_list
 
 def get_taz_nodes(network):
@@ -467,7 +471,7 @@ def get_taz_nodes(network):
             taz_list.append((node.id, wgs84tuple[1], wgs84tuple[0]))
     return taz_list
 
-def stop_to_stop_transfers(stops_df, max_distance_in_feet):
+def stop_to_stop_transfers(stops_df, routes_by_stop, max_distance_in_feet):
     '''
     Creates stop to stop transfers DataFrame for transfers.txt. Limits stops pairs by applying max_distance_in_feet.  
     '''
@@ -479,10 +483,31 @@ def stop_to_stop_transfers(stops_df, max_distance_in_feet):
     
     # get all stop to stop combos and distances:
     x = [[geod.inv(x[0], x[1], y[0], y[1])[2], x[2], y[2]] for x, y in combinations(points, 2) if geod.inv(x[0], x[1], y[0], y[1])[2] <= buffer] 
-    
+    print 'here'
+    print x
     # fill list (data) with records that are within distance buffer. convert distance back to feet:
     data = []
     for record in x:
-        data.append({'distance' : record[0] * 3.28084, 'from_stop_id' : record[1], 'to_stop_id' : record[2], 'transfer_type' : 0})
-        data.append({'distance' : record[0] * 3.28084, 'from_stop_id' : record[2], 'to_stop_id' : record[1], 'transfer_type' : 0})
+        stop1_routes = routes_by_stop[int(record[1])]
+        stop2_routes = routes_by_stop[int(record[2])]
+        # check to see if there are routes in the first stop that are not at the second stop (of the pair)
+        if [i for i in stop1_routes if i not in stop2_routes]:
+            data.append({'dist' : record[0] * 3.28084, 'from_stop_id' : record[1], 'to_stop_id' : record[2], 'transfer_type' : 0})
+        # check the other way
+        if [i for i in stop2_routes if i not in stop1_routes]:
+            data.append({'dist' : record[0] * 3.28084, 'from_stop_id' : record[2], 'to_stop_id' : record[1], 'transfer_type' : 0})
     return data
+
+def stop_to_stop_transfersFT(transfer_list,timed_transfers_df):
+    '''
+    Creates stop to stop transfers DataFrame for transfers.txt. Limits stops pairs by applying max_distance_in_feet.  
+    '''
+    transfer_list_ft = []
+    # add fields to transfer_list
+    for record in transfer_list:
+        record.update({'from_route_id' : " ", 'to_route_id' : " ", 'schedule_precedence' : " "})
+        transfer_list_ft.append(record)
+    for row in timed_transfers_df.itertuples():
+        transfer_list_ft.append(zip(timed_transfers_df.columns.tolist(), row))
+    print transfer_list_ft
+    return transfer_list_ft

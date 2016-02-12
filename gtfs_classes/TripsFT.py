@@ -1,16 +1,16 @@
 import os
 import pandas as pd
 
-class AccessLinks(object):
+class TripsFT(object):
     
     """
-    Access Links. 
+    Trips. 
     """
-    columns = ['taz', 'stop_id', 'dist'] 
+    columns = ['trip_id', 'vehicle_name'] 
     def __init__(self, data):
         """
         Constructor to populate DataFrame from list of dictionaries where each dictionary holds 
-        row data for GTFS stop.txt. 
+        row data for GTFS Trips.txt. 
         """
         #: Trips_stop_times DataFrame
         

@@ -6,7 +6,7 @@ class Agency(object):
     """
     Trips. 
     """
-    columns = ['service_id', 'monday', 'tuesday', 'wednesday', 'thursday','friday', 'saturday', 'start_date', 'end_date'] 
+    columns = ['agency_id', 'agency_name', 'agency_url', 'agency_timezone'] 
     def __init__(self, data):
         """
         Constructor to populate DataFrame from list of dictionaries where each dictionary holds 
