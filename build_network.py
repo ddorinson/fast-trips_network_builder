@@ -11,7 +11,7 @@ from itertools import chain
 
 from collections import defaultdict
 import collections
-from config.input_configuration_test_network import *
+from config.input_configuration import *
 from functions.general_functions import *
 from gtfs_classes.FareRules import *
 from gtfs_classes.Trips import *
@@ -31,7 +31,7 @@ from gtfs_classes.GTFS_Utilities import *
 from gtfs_classes.AccessLinks import *
 
 walk_links_built = False  
-test_network = True
+
 if test_network:
     inputs_path = 'test_inputs/'
 else:
@@ -44,6 +44,7 @@ df_stops_zones = pd.DataFrame.from_csv(inputs_path + 'fares/stop_zones.csv', ind
 df_fare_rules_ft = pd.DataFrame.from_csv(inputs_path + 'fares/fare_rules_ft.csv', index_col=False)
 df_fare_attributes = pd.DataFrame.from_csv(inputs_path + 'fares/fare_attributes.csv', index_col=False)
 df_fare_attributes_ft = pd.DataFrame.from_csv(inputs_path + 'fares/fare_attributes_ft.csv', index_col=False)
+df_fare_transfer_rules = pd.DataFrame.from_csv(inputs_path + 'fares/fare_transfer_rules.csv', index_col=False)
 df_vehicles = pd.DataFrame.from_csv(inputs_path + 'vehicles.csv', index_col=False)
 df_timed_transfers = pd.DataFrame.from_csv(inputs_path + 'timed_transfers.csv', index_col=False)
 
@@ -95,7 +96,7 @@ id_generator = generate_unique_id(range(1,999999))
 # Load all the networks into the network_dict
 for tod in highway_assignment_tod.itervalues():
         
-        
+    print banks_path    
     with _eb.Emmebank(banks_path + tod + '/emmebank') as emmebank:
         current_scenario = emmebank.scenario(1002)
         network = current_scenario.get_network()
@@ -118,9 +119,9 @@ for tod, my_dict in transit_network_tod.iteritems():
     if not walk_links_built:
         taz_list = get_taz_nodes(network)
         walk_links_built = True
-        print taz_list
+        
     transit_attributes_df = pd.DataFrame.from_csv(inputs_path + tod + '_line_attributes.csv', index_col=False)
-    print transit_attributes_df
+ 
 
     # To Do: Store in a dict and turn this into a loop
     transit_network.create_attribute('TRANSIT_LINE', 'shape_id')
@@ -130,9 +131,11 @@ for tod, my_dict in transit_network_tod.iteritems():
     transit_network.create_attribute('TRANSIT_LINE', 'ft_mode')
     transit_network.create_attribute('TRANSIT_LINE', 'proof_of_payment')
     transit_network.create_attribute('TRANSIT_LINE', 'vehicle_name')
-
+   
+    
     # Schedule each route and create data structure (list of dictionaries) for trips and stop_times. 
     for transit_line in transit_network.transit_lines():
+        print transit_line.id
         configure_transit_line_attributes(transit_line, transit_attributes_df)
         departure_times = []
             
@@ -176,7 +179,7 @@ for tod, my_dict in transit_network_tod.iteritems():
 
 ###### STOPS ######
 stops = list(set(stops))
-stops_list = popualate_stops(transit_network, stops)
+stops_list = popualate_stops(transit_network, stops, df_stops_zones)
    
             
 # Instantiate classes
@@ -193,7 +196,7 @@ agency = Agency(agency_list)
 calendar = Calendar(calender_list)
     
 #access links:
-access_links = AccessLinks(get_access_links(taz_list, stops.data_frame, 2640))
+access_links = AccessLinks(get_access_links(taz_list, stops.data_frame, 14000))
 
 #print test
 access_links.data_frame.to_csv('outputs/walk_access.txt', index = False)
@@ -203,8 +206,9 @@ fare_rules.data_frame.drop_duplicates(inplace = True)
 
 fare_rules.data_frame.to_csv('outputs/fare_rules.txt', index = False)
 df_fare_rules_ft.to_csv('outputs/fare_rules_ft.txt', index = False)
-df_fare_attributes.to_csv('outputs/fare_attributes.txt', index = False)
-df_fare_attributes_ft.to_csv('outputs/fare_attributes_ft.txt', index = False)
+df_fare_attributes.to_csv('outputs/fare_attributes.txt', index = False, float_format='%.2f')
+df_fare_attributes_ft.to_csv('outputs/fare_attributes_ft.txt', index = False, float_format='%.2f')
+df_fare_transfer_rules.to_csv('outputs/fare_transfer_rules.txt', index = False, float_format='%.2f')
 df_vehicles.to_csv('outputs/vehicles.txt', index = False)
 df_vehicles.to_csv('outputs/vehicles_ft.txt', index = False)
 routes.data_frame.drop_duplicates(inplace = True)
@@ -224,7 +228,7 @@ agency.data_frame.to_csv('outputs/agency.txt', index = False)
 calendar.data_frame.to_csv('outputs/calendar.txt', index = False)
 
 # #create transfers, depdendent on stops class:
-synth_gtfs = GTFS_Utilities('outputs', my_dict['start_time'], my_dict['end_time'], SERVICE_ID)
+synth_gtfs = GTFS_Utilities('outputs', 0, 1440, SERVICE_ID)
 transfer_list = stop_to_stop_transfers(stops.data_frame, synth_gtfs.routes_by_stop, 2640)
 transfers = Transfers(transfer_list)
 transfer_list_ft = stop_to_stop_transfersFT(transfer_list, df_timed_transfers)

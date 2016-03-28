@@ -5,11 +5,14 @@ import collections
 DWELL_TIME = .25
 
 #Service ID Field 
-SERVICE_ID = 1
-
+SERVICE_ID = 'PSRC'
+use_published_departure_times = True
+test_network = False
 # Location of assingment banks
 banks_path = 'R:/SoundCast/releases/TransportationFutures2010/Banks/'
-
+agency_list = [{'agency_id' : 'PSRC', 'PSRC' : 'tntransit', 'agency_url' : "http://www.psrc.org", 'agency_timezone' : 'US/Pacific'}]
+calender_list = [{'service_id' : 'tntransit', 'monday' : 1 ,'tuesday' : 1,'wednesday' : 1, 'thursday' : 1,'friday' : 1,'saturday' : 1, 'sunday' : 1, 
+            'start_date' : '20160101', 'end_date' : '20161231'}]
 ##### Network Dictionaries:
 # We currently have two disctinct transit networks- AM and MD - and we use them for multiple assignment periods. 
 # 'transit_bank'- The transit network to use for a given time period (AM or MD). We use the same am transit network for 6to7, 7to8, and 8to9 assignments, 
@@ -24,7 +27,7 @@ banks_path = 'R:/SoundCast/releases/TransportationFutures2010/Banks/'
 
 transit_network_tod = collections.OrderedDict()
 transit_network_tod['am'] = {'transit_bank' : '6to7', 'start_time' : 300, 'end_time' : 540, 'tod_int' : 10000}
-transit_network_tod['md'] = {'transit_bank' :'9to10', 'start_time' : 540, 'end_time' : 900, 'tod_int': 20000 }
+#transit_network_tod['md'] = {'transit_bank' :'9to10', 'start_time' : 540, 'end_time' : 900, 'tod_int': 20000 }
 
 
 # The highway asssignment bank that is used to get link speed/time. 

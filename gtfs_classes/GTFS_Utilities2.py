@@ -39,7 +39,8 @@ class GTFS_Utilities2(object):
         self.trip_list = self._get_trip_list()
         self.departure_times = self._get_departure_times()
         self.schedule_pattern_dict = self.get_schedule_pattern()
-        self.schedule_pattern_df = self.get_schedule_pattern_df()      
+        self.schedule_pattern_df = self.get_schedule_pattern_df()   
+        self.unique_stop_sequences_df = self.df_all_stops_by_trips.groupby(['shape_id', 'stop_sequence']).first()
     def  _get_trips_stop_times(self):
         """
         Creates a merged dataframe consisting of trips & stop_ids for the start time, end time and service_id (from GTFS Calender.txt).
@@ -54,7 +55,7 @@ class GTFS_Utilities2(object):
         # Add columns for arrival/departure in decimal minutes and hours:
         #stop_times_df['arrival_time_mins'] = stop_times_df.apply(self._convert_to_decimal_minutes, axis=1, args=('arrival_time',))
         # Some schedules only have arrival/departure times for time points, not all stops:
-        if stop_times_df['departure_time'].hasnans():
+        if stop_times_df['departure_time'].isnull().any():
             stop_times_df['departure_time'].fillna('00:00:00', inplace=True)
             stop_times_df['departure_time_mins'] = stop_times_df.apply(self._convert_to_decimal_minutes, axis=1,args=('departure_time',))
             stop_times_df['departure_time_mins'].replace(0, NaN, inplace = True)
@@ -240,6 +241,7 @@ class GTFS_Utilities2(object):
         # Need to use all the stops for the trips within the time window, even if those stops fall outside the time winwdow because we 
         # are interested in unique stop sequences 
         stop_sequence_dict = {k: list(v) for k,v in self.df_all_stops_by_trips.groupby(['trip_id', 'route_id'])['stop_id']}
+        
         # Empty dictionary to store unique stop sequences
         my_dict = {}
         for key, value in stop_sequence_dict.iteritems():
@@ -283,7 +285,8 @@ class GTFS_Utilities2(object):
            
 #test = GTFS_Utilities2(r'R:\Stefan\PSR_Consolidated\gtfs_puget_sound_consolidated', 0, 1440, '727A1137')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Pierce\Google_Transit', 0, 1440, 'FEB14-WKD')
-test = GTFS_Utilities2(r'W:\gis\projects\CentersTransit2015\walkscore\GTFS\Metro', 0, 1440, 'WEEKDAY')
+#test = GTFS_Utilities2(r'T:\2016February\Craig\gtfs-2040-kcm-a41674b', 0, 1440, 'weekday')
+test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Metro\google_transit', 0, 1440, 'WEEKDAY')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Kitsap\modified_gtfs', 0, 1440, 'mtwtf_PSNS')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Everett\ET', 0, 1440, 'WD')
 

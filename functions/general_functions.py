@@ -3,7 +3,7 @@ import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
 import numpy as np
 import time
-from config.input_configuration_test_network import *
+from config.input_configuration import *
 import itertools
 from itertools import groupby
 from itertools import combinations
@@ -170,15 +170,18 @@ def get_zones_from_stops(list_of_stops, df_stops_zones):
     df = pd.DataFrame(np.asarray(list_of_stops),index=None,columns=['NODE_ID'])
     df = df.merge(df_stops_zones, 'left', left_on = ["NODE_ID"], right_on = ["ID"])
     zone_list = df['ZoneID'].tolist()
+    print 'zones' 
+    print zone_list
     
     return zone_list
 
-def popualate_stops(network, stops):
+def popualate_stops(network, stops, df_stop_zones):
     '''
     Creates records for stops.txt
     '''
     stops_list = []
     for stop in stops:
+        print stop
         node = network.node(stop)
         #location = geolocator.reverse(node.x, node.y)
         #print location.address
@@ -189,8 +192,11 @@ def popualate_stops(network, stops):
         #except:
         #    stop_name = geocode.street_long
 
-        
-        stops_record = [node.id, 'stop', wgs84tuple[1], wgs84tuple[0], 1]
+        row = df_stop_zones.loc[(df_stop_zones.ID == int(node.id))]
+        stop_name = row['Name'].iloc[0]
+        zone_id = row['ZoneID'].iloc[0]
+        print stop_name
+        stops_record = [node.id, stop_name, wgs84tuple[1], wgs84tuple[0], zone_id]
         stops_list.append(dict(zip(Stops.columns, stops_record)))
 
     return stops_list
@@ -209,7 +215,7 @@ def populate_fare_rule(zone_pairs, df_fare_rules, emme_transit_line, df_fares):
     
         fare_id = row['fare_id'].iloc[0]
         #fare_id = get_fare_id(emme_transit_line.data3, origin, destination)
-        df_fare_rules.loc[len(df_fare_rules)] = [fare_id, emme_transit_line.route_id, origin, destination, 0]
+        df_fare_rules.loc[len(df_fare_rules)] = [fare_id, emme_transit_line.route_id, origin, destination, ""]
 
 def test_fare_rules(route_stops, df_fare_rules, route_id):
     """
@@ -392,7 +398,6 @@ def calc_transit_time(link_i, link_j, tod, ttf, network_dictionary):
     
     # Check to see if link exists:
     if not link:
-        print "no link"
         # Get it from fall back dict:
         new_tod = fall_back_dict[tod]
         network = network_dictionary[new_tod]
@@ -457,9 +462,12 @@ def get_access_links(taz_list, stops_df, max_distance_in_feet):
     for row in taz_list:
         x = [[geod.inv(row[2], row[1], y[0], y[1])[2], row[0], y[2]] for y in bus_stop_points if geod.inv(row[2], row[1], y[0], y[1])[2] <= buffer]
         #x = [[geod.inv(row[2], row[1], y[0], y[1])[2], row[0], y[2]] for y in bus_stop_points]
-        print x
+
         for record in x:
-            access_links_list.append({'taz' : record[1], 'stop_id' : record[2], 'dist' : record[0] * 3.28084}) 
+            distance = record[0]
+            distance = distance * 3.28084/5280.0
+            distance = float("{0:.2f}".format(distance))
+            access_links_list.append({'taz' : record[1], 'stop_id' : record[2], 'dist' : distance}) 
     return access_links_list
 
 def get_taz_nodes(network):
@@ -468,7 +476,7 @@ def get_taz_nodes(network):
     for node in network.nodes():
         if node.is_centroid:
             wgs84tuple = reproject_to_wgs84(node.x, node.y)
-            taz_list.append((node.id, wgs84tuple[1], wgs84tuple[0]))
+            taz_list.append((int(node.id), wgs84tuple[1], wgs84tuple[0]))
     return taz_list
 
 def stop_to_stop_transfers(stops_df, routes_by_stop, max_distance_in_feet):
@@ -483,19 +491,23 @@ def stop_to_stop_transfers(stops_df, routes_by_stop, max_distance_in_feet):
     
     # get all stop to stop combos and distances:
     x = [[geod.inv(x[0], x[1], y[0], y[1])[2], x[2], y[2]] for x, y in combinations(points, 2) if geod.inv(x[0], x[1], y[0], y[1])[2] <= buffer] 
-    print 'here'
-    print x
+    #print 'here'
+    #print x
     # fill list (data) with records that are within distance buffer. convert distance back to feet:
     data = []
     for record in x:
+        print record
         stop1_routes = routes_by_stop[int(record[1])]
         stop2_routes = routes_by_stop[int(record[2])]
+        distance = record[0]
+        distance = distance * 3.28084/5280.0
+        distance = float("{0:.2f}".format(distance))
         # check to see if there are routes in the first stop that are not at the second stop (of the pair)
         if [i for i in stop1_routes if i not in stop2_routes]:
-            data.append({'dist' : record[0] * 3.28084, 'from_stop_id' : record[1], 'to_stop_id' : record[2], 'transfer_type' : 0})
+            data.append({'dist' : distance, 'from_stop_id' : record[1], 'to_stop_id' : record[2], 'transfer_type' : 0})
         # check the other way
         if [i for i in stop2_routes if i not in stop1_routes]:
-            data.append({'dist' : record[0] * 3.28084, 'from_stop_id' : record[2], 'to_stop_id' : record[1], 'transfer_type' : 0})
+            data.append({'dist' : distance, 'from_stop_id' : record[2], 'to_stop_id' : record[1], 'transfer_type' : 0})
     return data
 
 def stop_to_stop_transfersFT(transfer_list,timed_transfers_df):
@@ -508,6 +520,10 @@ def stop_to_stop_transfersFT(transfer_list,timed_transfers_df):
         record.update({'from_route_id' : " ", 'to_route_id' : " ", 'schedule_precedence' : " "})
         transfer_list_ft.append(record)
     for row in timed_transfers_df.itertuples():
+        print row
+        row = row[1: len(row)]
+        print (zip(timed_transfers_df.columns.tolist(), row))
         transfer_list_ft.append(zip(timed_transfers_df.columns.tolist(), row))
-    print transfer_list_ft
+
+    #print transfer_list_ft
     return transfer_list_ft
