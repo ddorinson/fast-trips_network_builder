@@ -213,6 +213,8 @@ df_vehicles.to_csv('outputs/vehicles.txt', index = False)
 df_vehicles.to_csv('outputs/vehicles_ft.txt', index = False)
 routes.data_frame.drop_duplicates(inplace = True)
 routes.data_frame = routes.data_frame.groupby('route_id').first().reset_index()
+routes_ft.data_frame.drop_duplicates(inplace = True)
+routes_ft.data_frame = routes_ft.data_frame.groupby('route_id').first().reset_index()
 
 # Write out text files
 shapes.data_frame.to_csv('outputs/shapes.txt', index = False)
