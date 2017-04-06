@@ -1,4 +1,4 @@
-import inro.emme.matrix as ematrix
+﻿import inro.emme.matrix as ematrix
 import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
 import numpy as np
@@ -53,14 +53,18 @@ def configure_transit_line_attributes(transit_line, df_network_atts):
     '''
     Add attributes that are not stored in emme to each transit line.  
     '''
+
     row = df_network_atts.loc[(df_network_atts.id == int(transit_line.id))]
     transit_line.route_id = row['route_id'].iloc[0]
     transit_line.shape_id = row['shape_id'].iloc[0]
+    #Angela's edit - below one line
+    #transit_line.LineID = row['LineID'].iloc[0]
     transit_line.short_name = row['short_name'].iloc[0]
     transit_line.long_name = row['long_name'].iloc[0]
     transit_line.ft_mode = row['ft_mode'].iloc[0]
     transit_line.proof_of_payment = row['proof_of_payment'].iloc[0]
     transit_line.vehicle_name = row['vehicle_name'].iloc[0]
+
 
 def reproject_to_wgs84(longitude, latitude, ESPG = "+init=EPSG:2926", conversion = 0.3048006096012192):
     '''
@@ -169,10 +173,9 @@ def get_zones_from_stops(list_of_stops, df_stops_zones):
 
     df = pd.DataFrame(np.asarray(list_of_stops),index=None,columns=['NODE_ID'])
     df = df.merge(df_stops_zones, 'left', left_on = ["NODE_ID"], right_on = ["ID"])
+
     zone_list = df['ZoneID'].tolist()
-    print 'zones' 
-    print zone_list
-    
+
     return zone_list
 
 def popualate_stops(network, stops, df_stop_zones):
@@ -181,7 +184,6 @@ def popualate_stops(network, stops, df_stop_zones):
     '''
     stops_list = []
     for stop in stops:
-        print stop
         node = network.node(stop)
         #location = geolocator.reverse(node.x, node.y)
         #print location.address
@@ -193,9 +195,8 @@ def popualate_stops(network, stops, df_stop_zones):
         #    stop_name = geocode.street_long
 
         row = df_stop_zones.loc[(df_stop_zones.ID == int(node.id))]
-        stop_name = row['Name'].iloc[0]
+        stop_name = row['ZoneName'].iloc[0]
         zone_id = row['ZoneID'].iloc[0]
-        print stop_name
         stops_record = [node.id, stop_name, wgs84tuple[1], wgs84tuple[0], zone_id]
         stops_list.append(dict(zip(Stops.columns, stops_record)))
 
@@ -205,17 +206,20 @@ def populate_fare_rule(zone_pairs, df_fare_rules, emme_transit_line, df_fares):
     '''
     Updates dataframe on instance of Fare_Rules with all possible rules for a given route
     '''
-
     for pair in zone_pairs:
         origin = pair[0]
         destination = pair[1]
         # .data3 refers to operator
         row = df_fares.loc[(df_fares.operator == emme_transit_line.data3) 
                            & (df_fares.origin_zone == origin) & (df_fares.destination_zone == destination)]
-    
+        if len(row) == 0:
+            #print origin, destination
+            break 
         fare_id = row['fare_id'].iloc[0]
         #fare_id = get_fare_id(emme_transit_line.data3, origin, destination)
+
         df_fare_rules.loc[len(df_fare_rules)] = [fare_id, emme_transit_line.route_id, origin, destination, ""]
+ 
 
 def test_fare_rules(route_stops, df_fare_rules, route_id):
     """
@@ -296,46 +300,61 @@ def schedule_route(start_time, end_time, transit_line, trip_id_generator, stop_t
     otherwise they will be determined using the get_random_departure_time function. Creates a record for each trip and all stop_times for each trip, which are stored in 
     dictionaries and appended to stops_times_list and trips_list.
     '''
- 
     # Get first stop departure times if not provided by departure_times argument: 
     if not departure_times:
+
         # Has this line already been scheduled for a previous time period?
         if transit_line.shape_id in prev_last_departure_dict.values():
+
             # Get the final departure time from the last time period
             last_departure = prev_last_departure_dict.values[transit_line.shape_id]
             # Does the last departure + the new headway happen before the begining of this time period? If yes, 
             # set the first departure time to the begining of the time period. 
             if last_departure + transit_line.headway < start_time:
                 departure_times = range(int(start_time), end_time, int(transit_line.headway))
+
             # Otherwise make the first departure equal to the last departure + the new headway
             else:
                 departure_times = range(int(last_departure + start_time), end_time, int(transit_line.headway))
+
         # Otherwise, schedule this route for the first time:
         else:
             random_start_time = get_random_departure_time(start_time, transit_line.headway)
+ 
             departure_times = range(int(random_start_time), end_time, int(transit_line.headway))
+
+      
 
     prev_last_departure_dict[transit_line.shape_id] = departure_times[-1]
     for departure_time in departure_times:
-       
+
        # Create a record for trips (GTFS File)
        trip_id = trip_id_generator.next()
-       
+ 
        # To Do: need a route_id attribute- using transit_line.id for now
        # Populate trips record
+
        trips_record = [transit_line.route_id, SERVICE_ID, trip_id, transit_line.shape_id]
+       # Above original code was edited into blow to test the headway trip frequency - Angela 
+       #trips_record = [transit_line.route_id, SERVICE_ID, trip_id, transit_line.shape_id, transit_line.LineID]
        trips_list.append(dict(zip(Trips.columns, trips_record)))
+
        
        # Populate trips_ft record
        trips_ft_record = [trip_id, transit_line.vehicle_name]
        trips_ft_list.append(dict(zip(TripsFT.columns, trips_ft_record)))
-       
+     
        order = 1
        for segment in transit_line.segments():
+          
+        
            last_segment_number = max(enumerate(transit_line.segments()))[1].number
            tod = highway_assignment_tod[int(departure_time)/60]
+      
+       
            # Get segment time in decmial minutes
-           segment_time = calc_transit_time(segment.link.i_node.id, segment.link.j_node.id, tod, segment.transit_time_func, network_dictionary)
+         
+           segment_time = calc_transit_time(segment, segment.link.i_node.id, segment.link.j_node.id, tod, segment.transit_time_func, network_dictionary)
            
            # A one segment line (ferry):
            if segment.number == 0 and last_segment_number == 0:
@@ -386,71 +405,79 @@ def schedule_route(start_time, end_time, transit_line, trip_id_generator, stop_t
                     # Not a stop, add time for this link
                     departure_time = departure_time + segment_time
 
-def calc_transit_time(link_i, link_j, tod, ttf, network_dictionary):
+def calc_transit_time(segment, link_i, link_j, tod, ttf, network_dictionary):
     '''
     Returns the transit time for a passed in segment in decimal minutes using the same factors we use for static assignment. ttf is a transit network input and is based
     on facility type and when the last stop was made.
     '''
     
     network = network_dictionary[tod]
-    
+  
     link = network.link(link_i, link_j)
-    
+
+    new_tod = ''
+ 
     # Check to see if link exists:
     if not link:
         # Get it from fall back dict:
         new_tod = fall_back_dict[tod]
         network = network_dictionary[new_tod]
         link = network.link(link_i, link_j)
-    
+        
     # Factors below would be stored in a config file. 
     # Bus Only, assume max speed
     if ttf == 4:
         transit_time = link.length * (60 / link.data2)
-    
+        
     # Rail time is stored in data2
     elif ttf == 5:
         transit_time = link.data2
-
+       
     # Weave links- do not get a time
     elif link.data2 == 0:
         transit_time = 0
-    
+       
     # Local
     elif ttf == 11:
         if link.auto_time <= 0:
             transit_time = 1.037034 * (link.length * (60 / link.data2))
         else:
             transit_time = min(1.037034 * link.auto_time, link.length * 12)
-    
+        
     # Local, recent stop
     elif ttf == 12:
         if link.auto_time <= 0:
             transit_time = 1.285566 * (link.length * (60 / link.data2))
         else:
             transit_time = min(1.285566 * link.auto_time, link.length * 12)
-    
+      
     # Facility type is highway and last stop is greater than 2640 feet behind
     elif ttf == 13:
         if link.auto_time <= 0:
             transit_time = 1.265774 * (link.length * (60 / link.data2))
         else:
             transit_time = min(1.265774 * link.auto_time, link.length * 12)
-    
+      
     # Last stop is greater than 7920 feet behind
     elif ttf == 14:
         if link.auto_time <= 0:
             transit_time = 1.00584 * (link.length * (60 / link.data2))
         else:
             transit_time = 1.00584 * link.auto_time
-
-    else:
-        raise ValueError('Transit ID ' + str(transit_segment.line) + ' and segment number ' + str(transit_segment.number) + 'does not have a valid TTF')
     
+            # TTF should not be 0- only here because of a transit coding error. Remove once fixed. 
+    elif ttf == 0:
+        if link.auto_time <= 0:
+            transit_time = 1.00584 * (link.length * (60 / link.data2))
+        else:
+            transit_time = 1.00584 * link.auto_time
+    else: 
+        raise ValueError('Transit ID ' + str(segment.line) + ' and segment number ' + str(segment.number) + 'does not have a valid TTF')
+      
     if transit_time < 0:
         # Speed's of 0 are allowed on weave links, but let's make sure there are no negative values. 
-        raise ValueError('Transit ID ' + str(transit_segment.line) + ' and segment number ' + str(transit_segment.number) + 'has a speed lower than 0')
-    
+        raise ValueError('Transit ID ' + str(segment.line) + ' and segment number ' + str(segment.number) + 'has a speed lower than 0')
+        
     return transit_time
 
 def get_access_links(taz_list, stops_df, max_distance_in_feet):
@@ -491,12 +518,9 @@ def stop_to_stop_transfers(stops_df, routes_by_stop, max_distance_in_feet):
     
     # get all stop to stop combos and distances:
     x = [[geod.inv(x[0], x[1], y[0], y[1])[2], x[2], y[2]] for x, y in combinations(points, 2) if geod.inv(x[0], x[1], y[0], y[1])[2] <= buffer] 
-    #print 'here'
-    #print x
     # fill list (data) with records that are within distance buffer. convert distance back to feet:
     data = []
     for record in x:
-        print record
         stop1_routes = routes_by_stop[int(record[1])]
         stop2_routes = routes_by_stop[int(record[2])]
         distance = record[0]
@@ -520,10 +544,8 @@ def stop_to_stop_transfersFT(transfer_list,timed_transfers_df):
         record.update({'from_route_id' : " ", 'to_route_id' : " ", 'schedule_precedence' : " "})
         transfer_list_ft.append(record)
     for row in timed_transfers_df.itertuples():
-        print row
         row = row[1: len(row)]
-        print (zip(timed_transfers_df.columns.tolist(), row))
+        #print (zip(timed_transfers_df.columns.tolist(), row))
         transfer_list_ft.append(zip(timed_transfers_df.columns.tolist(), row))
 
-    #print transfer_list_ft
     return transfer_list_ft
