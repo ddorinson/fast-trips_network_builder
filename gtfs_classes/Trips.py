@@ -1,4 +1,4 @@
-import os
+﻿import os
 import pandas as pd
 
 class Trips(object):
@@ -6,7 +6,7 @@ class Trips(object):
     """
     Trips. 
     """
-    columns = ['route_id', 'service_id', 'trip_id', 'shape_id'] 
+    columns = ['route_id', 'service_id', 'trip_id', 'shape_id', 'LineID'] 
     def __init__(self, data):
         """
         Constructor to populate DataFrame from list of dictionaries where each dictionary holds 

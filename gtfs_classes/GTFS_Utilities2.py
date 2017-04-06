@@ -1,4 +1,4 @@
-__copyright__ = "Copyright 2015 Contributing Entities"
+﻿__copyright__ = "Copyright 2015 Contributing Entities"
 __license__   = """
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -47,9 +47,11 @@ class GTFS_Utilities2(object):
         This can include partial itineraries as only stops within the start and end time are included.  
         """
         trips_df = pd.DataFrame.from_csv(self.dir + '/trips.txt', index_col=False)
+        print trips_df
         # Get the trips for this service_id
         trips_df = trips_df.loc[(trips_df.service_id == self.service_id)]
-
+        print self.service_id
+        print trips_df
         stop_times_df = pd.DataFrame.from_csv(self.dir + '/stop_times.txt', index_col=False)
         stop_times_df = self._make_sequence_col(stop_times_df, ['trip_id', 'stop_sequence'], 'trip_id', 'stop_sequence')
         # Add columns for arrival/departure in decimal minutes and hours:
@@ -64,17 +66,23 @@ class GTFS_Utilities2(object):
             stop_times_df['departure_time_mins'] = stop_times_df.apply(self._convert_to_decimal_minutes, axis=1,args=('departure_time',))
         stop_times_df['departure_time_hrs'] = stop_times_df['departure_time_mins']/60
         stop_times_df['departure_time_hrs'] = stop_times_df['departure_time_hrs'].astype(int)
+        #print stop_times_df
         # Get all trips for this time window
         trips_tw_df = stop_times_df.loc[(stop_times_df.departure_time_mins >= self.start_time) & (stop_times_df.departure_time_mins < self.end_time)]
+        
         # Only need the trip_id column
         trips_tw_df = pd.DataFrame(trips_tw_df.trip_id)
         #print len(trips_tw_df)
         trips_tw_df = trips_tw_df.drop_duplicates('trip_id')
+        
         # Merge trips on trip_id, so we can have shape_id. Use inner so we get trips for time window and service_id
         trips_tw_df = trips_tw_df.merge(trips_df, 'inner', left_on = ["trip_id"], right_on = ["trip_id"])
+        print trips_df
+        print trips_tw_df
         # Get all the stops for the trips that operate in this window, even if some of the stops occur outside the window
         trips_stop_times_df = stop_times_df.merge(trips_tw_df, 'right', left_on = ["trip_id"], right_on = ["trip_id"])
         trips_stop_times_df = trips_stop_times_df.sort(['trip_id', 'stop_sequence'])
+       
         return trips_stop_times_df
         
 
@@ -82,39 +90,6 @@ class GTFS_Utilities2(object):
         trips = self.df_all_stops_by_trips.trip_id.tolist()
         trips = list(set(trips))   
         return trips
-
-    def _tph_from_frequencies(self):
-        
-        freq_df = pd.DataFrame.from_csv(self.dir + '/frequencies.txt', index_col=False)
-        trips_df = pd.DataFrame.from_csv(self.dir + '/trips.txt', index_col=False)
-        # Get the trips for this service_id
-        trips_df = trips_df.loc[(trips_df.service_id == self.service_id)]
-        trips_df = trips_df[['trip_id', 'shape_id']]
-
-        freq_df['start_time_secs'] = freq_df.apply(self._convert_to_seconds, axis=1,args=('start_time',))
-        freq_df['end_time_secs'] = freq_df.apply(self._convert_to_seconds, axis=1,args=('end_time',))
-        freq_df = freq_df.merge(trips_df, 'left', left_on = ["trip_id"], right_on = ["trip_id"])
-        freq_df.shape_id.fillna(0, inplace = True)
-        freq_df = freq_df[freq_df.shape_id != 0]
-
-        my_list = []
-        for row in freq_df.iterrows():
-            for i in range(row[1].start_time_secs, row[1].end_time_secs, row[1].headway_secs):
-                my_list.append({'trip_id' : row[1].trip_id, 'shape_id' : row[1].shape_id, 'departure_time_hrs' : i/3600})
-                
-        first_departure = pd.DataFrame(my_list)
-        first_departure = first_departure.groupby(['shape_id', 'departure_time_hrs'])['departure_time_hrs'].count()
-        first_departure_df = pd.DataFrame(first_departure)
-        first_departure_df.reset_index(level=0, inplace=True)
-        first_departure_df = first_departure_df.rename(columns = {'departure_time_hrs' : 'frequency'})
-        first_departure_df.reset_index(level=0, inplace=True)
-        t = pd.pivot_table(first_departure_df, values='frequency', index=['shape_id'], columns=['departure_time_hrs'])
-        t = t.fillna(0)
-
-        for col in t.columns:
-            if not col == 'shape_id':
-                t = t.rename(columns = {col : 'hour_' + str(col)})
-        return t
     
     def _get_stops_by_window(self):
          stops_by_window_df = self.df_all_stops_by_trips.loc[(self.df_all_stops_by_trips.departure_time_mins >= self.start_time) & (self.df_all_stops_by_trips.departure_time_mins < self.end_time)]
@@ -262,10 +237,6 @@ class GTFS_Utilities2(object):
         
         return seconds
 
-    def _convert_to_seconds(self, row, field):
-        h, m, s = row[field].split(':')
-        return int(h) * 3600 + int(m) * 60 + int(s)
-    
     def get_schedule_pattern(self):
         """
         Returns a nested diciontary where the first level key is route_id and values are respresentative trip_ids that have unique stop sequences.
@@ -322,6 +293,7 @@ class GTFS_Utilities2(object):
            
 #test = GTFS_Utilities2(r'R:\Stefan\PSR_Consolidated\gtfs_puget_sound_consolidated', 0, 1440, '727A1137')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Pierce\Google_Transit', 0, 1440, 'FEB14-WKD')
+test = GTFS_Utilities2(r'D:\fast_trips\last_working_copy\fast_trips_repo_121415\fast-trips_network_builder\outputs', 0, 1440, 'PSRC')
 #test = GTFS_Utilities2(r'T:\2016February\Craig\gtfs-2040-kcm-a41674b', 0, 1440, 'weekday')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Metro\google_transit', 0, 1440, 'WEEKDAY')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\Kitsap\modified_gtfs', 0, 1440, 'mtwtf_PSNS')
@@ -329,8 +301,7 @@ class GTFS_Utilities2(object):
 
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\SoundTransit\gtfs', 0, 1440, 'WD')
 #test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\WSF', 0, 1440, 20160105)
-
-test6 = GTFS_Utilities2(r'Q:\Stefan\Transit2040_LongRangePlans\NewDec\GTFS\gtfs_remix_v3', 0, 1440, 'wkd')
+#test = GTFS_Utilities2(r'W:\gis\projects\stefan\Geodatabase\Model\Transit2014\GTFS\CommunityTransit\GTFS', 0, 1440, '14SEP-Weekday')
 
 
                 
