@@ -1,5 +1,6 @@
 import sys
 import os 
+print "test my git"
 import inro.emme.matrix as ematrix
 import inro.emme.database.matrix
 import inro.emme.database.emmebank as _eb
