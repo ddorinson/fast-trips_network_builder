@@ -1,4 +1,4 @@
-import os
+﻿import os
 import pandas as pd
 
 class FareRules(object):
@@ -16,4 +16,5 @@ class FareRules(object):
         
         df = pd.DataFrame(columns=self.columns)
         self.data_frame = df
-       
+
+

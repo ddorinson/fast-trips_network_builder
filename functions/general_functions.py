@@ -195,8 +195,11 @@ def popualate_stops(network, stops, df_stop_zones):
         #    stop_name = geocode.street_long
 
         row = df_stop_zones.loc[(df_stop_zones.ID == int(node.id))]
-        stop_name = row['ZoneName'].iloc[0]
-        zone_id = row['ZoneID'].iloc[0]
+        if len(row['ZoneName']) == 1:
+            stop_name = row['ZoneName'].iloc[0]
+        #print stop_name
+            zone_id = row['ZoneID'].iloc[0]
+        #print zone_id
         stops_record = [node.id, stop_name, wgs84tuple[1], wgs84tuple[0], zone_id]
         stops_list.append(dict(zip(Stops.columns, stops_record)))
 

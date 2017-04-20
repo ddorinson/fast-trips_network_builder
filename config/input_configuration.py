@@ -9,13 +9,10 @@ SERVICE_ID = 'PSRC'
 use_published_departure_times = True
 test_network = False
 # Location of assingment banks
-banks_path = 'R:/SoundCast/releases/TransportationFutures2010/Banks/'
-#banks_path = 'D:/soundcast_mode_choice/soundcast/Banks/'
-#banks_path = 'D:/fast_trips/bank_sample2010/banks/'
-#banks_path = 'D:/fast_trips/bank_sample2014/banks/'
+banks_path = 'Z:/Stefan/Soundcast_feb_twg/Banks'
 
-agency_list = [{'agency_id' : 'PSRC', 'PSRC' : 'tntransit', 'agency_url' : "http://www.psrc.org", 'agency_timezone' : 'US/Pacific'}]
-calender_list = [{'service_id' : 'tntransit', 'monday' : 1 ,'tuesday' : 1,'wednesday' : 1, 'thursday' : 1,'friday' : 1,'saturday' : 1, 'sunday' : 1, 
+agency_list = [{'agency_id' : 'PSRC', 'agency_name' : 'PSRC', 'agency_url' : "http://www.psrc.org", 'agency_timezone' : 'US/Pacific'}]
+calender_list = [{'service_id' : 'PSRC', 'monday' : 1 ,'tuesday' : 1,'wednesday' : 1, 'thursday' : 1,'friday' : 1,'saturday' : 1, 'sunday' : 1, 
             'start_date' : '20160101', 'end_date' : '20161231'}]
 ##### Network Dictionaries:
 # We currently have two disctinct transit networks- AM and MD - and we use them for multiple assignment periods. 
@@ -30,12 +27,13 @@ calender_list = [{'service_id' : 'tntransit', 'monday' : 1 ,'tuesday' : 1,'wedne
 # "end_time'-     The max time a route can leave it's first stop. Note that all stops will be completed even if they occur after end_time. 
 
 transit_network_tod = collections.OrderedDict()
-transit_network_tod['5to6'] = {'transit_bank' : '5to6', 'start_time' : 300, 'end_time' : 359}
+# please keep this setting consistent with demand
+#transit_network_tod['5to6'] = {'transit_bank' : '5to6', 'start_time' : 300, 'end_time' : 359}
 #transit_network_tod['6to7'] = {'transit_bank' : '6to7', 'start_time' : 360, 'end_time' : 419}
 #transit_network_tod['7to8'] = {'transit_bank' : '7to8', 'start_time' : 420, 'end_time' : 479}
-#transit_network_tod['8to9'] = {'transit_bank' : '8to9', 'start_time' : 480, 'end_time' : 539}
-#transit_network_tod['9to10'] = {'transit_bank' : '9to10', 'start_time' : 540, 'end_time' : 599}
-#transit_network_tod['10to14'] = {'transit_bank' : '10to14', 'start_time' : 600, 'end_time' : 839}
+transit_network_tod['8to9'] = {'transit_bank' : '8to9', 'start_time' : 480, 'end_time' : 539}
+transit_network_tod['9to10'] = {'transit_bank' : '9to10', 'start_time' : 540, 'end_time' : 599}
+transit_network_tod['10to14'] = {'transit_bank' : '10to14', 'start_time' : 600, 'end_time' : 839}
 #transit_network_tod['14to15'] = {'transit_bank' : '14to15', 'start_time' : 840, 'end_time' : 899}
 #transit_network_tod['15to16'] = {'transit_bank' : '15to16', 'start_time' : 900, 'end_time' : 959}
 #transit_network_tod['16to17'] = {'transit_bank' : '16to17', 'start_time' : 960, 'end_time' : 1019}

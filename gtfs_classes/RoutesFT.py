@@ -1,4 +1,4 @@
-import os
+﻿import os
 import pandas as pd
 
 class RoutesFT(object):
@@ -14,5 +14,11 @@ class RoutesFT(object):
         """
         #: Trips_stop_times DataFrame
         
-        self.data_frame = pd.DataFrame(data, columns = self.columns)
+        df = pd.DataFrame(data, columns = self.columns)
+        df['mode'] = df['mode'].map({'b': 'local_bus', 
+                                     'c':'commuter_rail', 
+                                     'f':'ferry', 
+                                     'p':'premium_bus', 
+                                     'r':'light_rail'})
+        self.data_frame = df
     

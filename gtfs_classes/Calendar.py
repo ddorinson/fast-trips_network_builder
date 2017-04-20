@@ -1,4 +1,4 @@
-import os
+﻿import os
 import pandas as pd
 
 class Calendar(object):
@@ -13,5 +13,7 @@ class Calendar(object):
         row data for GTFS Trips.txt. 
         """
         #: Trips_stop_times DataFrame
-        
-        self.data_frame = pd.DataFrame(data, columns = self.columns)
+
+        df = pd.DataFrame(data, columns = self.columns)
+
+        self.data_frame= df

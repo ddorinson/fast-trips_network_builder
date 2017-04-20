@@ -1,4 +1,4 @@
-import os
+﻿import os
 import pandas as pd
 
 class Agency(object):
@@ -14,4 +14,6 @@ class Agency(object):
         """
         #: Trips_stop_times DataFrame
         
-        self.data_frame = pd.DataFrame(data, columns = self.columns)
+        df = pd.DataFrame(data, columns = self.columns)
+
+        self.data_frame = df

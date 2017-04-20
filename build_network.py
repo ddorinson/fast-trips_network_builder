@@ -8,7 +8,7 @@ import pandas as pd
 import itertools
 from itertools import groupby
 from itertools import chain
-os.chdir(r"D:\fast_trips\last_working_copy\fast_trips_repo_121415\fast-trips_network_builder")
+os.chdir(r"D:\fast_trips\fast_trips_re_run_04172017\fast-trips_network_builder")
 from collections import defaultdict
 import collections
 from config.input_configuration import *
@@ -36,6 +36,8 @@ if test_network:
     inputs_path = 'test_inputs/'
 else:
     inputs_path = 'inputs/'
+
+banks_path = 'Z:/Stefan/Soundcast_feb_twg/Banks/'
 
 # Fare Files
 #if not test_network:
@@ -92,16 +94,15 @@ fare_rules = FareRules()
 
 # Generates a unique ID 
 id_generator = generate_unique_id(range(1,999999))
-    
+
 # Load all the networks into the network_dict
-banks_path = 'D:/soundcast_mode_choice/soundcast/Banks/'
-# Highway_assignment_tod = {6: '6to7'}
+# Highway_assignment_tod = {6: '6to7'}   
+
 for tod in highway_assignment_tod.itervalues():
     with _eb.Emmebank(banks_path + tod + '/emmebank') as emmebank:
         current_scenario = emmebank.scenario(1002)
         network = current_scenario.get_network()
         network_dict[tod] = network
-
 
 for tod, my_dict in transit_network_tod.iteritems():
     # A dictionary to hold an instance of GTFS_Utilities for each feed
@@ -189,7 +190,10 @@ access_links.data_frame.to_csv('outputs/walk_access.txt', index = False)
         
 # Drop duplicate records
 fare_rules.data_frame.drop_duplicates(inplace = True)
-fare_rules.data_frame.to_csv('outputs/fare_rules.txt', index = False)
+fare_rules = fare_rules.data_frame.astype(object)
+fare_rules[['route_id', 'origin_id', 'destination_id']] = fare_rules[['route_id', 'origin_id', 'destination_id']].astype(object)
+print fare_rules.dtypes
+fare_rules.to_csv('outputs/fare_rules.txt', index = False)
 df_fare_rules_ft.to_csv('outputs/fare_rules_ft.txt', index = False)
 df_fare_attributes.to_csv('outputs/fare_attributes.txt', index = False, float_format='%.2f')
 df_fare_attributes_ft.to_csv('outputs/fare_attributes_ft.txt', index = False, float_format='%.2f')
