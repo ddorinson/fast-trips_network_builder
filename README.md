@@ -1,5 +1,5 @@
 # fast-trips_network_builder 
-This repository is to provide all the supply-side network input files for [fast-trips](https://github.com/BayAreaMetro/fast-trips). A [GTFS-PLUS transit network] (https://github.com/osplanning-data-standards/GTFS-PLUS) consists of [transit assignment data files](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) from [Soundcast] (https://github.com/psrc/soundcast) that together describe a network of transit service. 
+This repository is to provide all the supply-side network input files for [fast-trips](https://github.com/BayAreaMetro/fast-trips). A [GTFS-PLUS transit network](https://github.com/osplanning-data-standards/GTFS-PLUS) consists of [transit assignment data files](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) from [Soundcast](https://github.com/psrc/soundcast) that together describe a network of transit service. 
 
 
 **version**: 0.0.1  
