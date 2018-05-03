@@ -10,6 +10,9 @@ This repository is to provide all the supply-side network input files for [fast-
  * Stefan Coe  (Puget Sound Regional Council) 
  * Angela Yang (Puget Sound Regional Council) 
 
+# Full Documentation
+Transit Network Design Specification v0.2, [technical memo](http://fast-trips.mtc.ca.gov/library/T2-NetworkDesign-StaticCopy-Sept2015V0.2.pdf). 
+
 # Specification
 A Transit Network directory, including schedules, access, egress and transfer information, specified by the [GTFS-Plus Data Standards Repository](https://github.com/osplanning-data-standards/GTFS-PLUS)
 
