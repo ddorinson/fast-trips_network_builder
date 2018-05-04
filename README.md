@@ -46,7 +46,7 @@ Filename 			| Description
 [`line_attribtes.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/line_attributes.csv)		| Get TAZ Nodes for walk access				
 [`gtfs_shapeID_to_lineID.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/gtfs_shapeID_to_lineID.csv)	| Shape ID to model route crosswalk  		
 [`sc_headways.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/sc_headways.csv)	| optional, generate gtfs_shapeID_to_lineID.csv									
-[`hourly_trips33.txt`](/files/agency.md)			| optional, generate gtfs_shapeID_to_lineID.csv									
+[`hourly_trips33.txt`]()			| optional, generate gtfs_shapeID_to_lineID.csv									
 
 
 # Output
