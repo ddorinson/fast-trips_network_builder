@@ -30,7 +30,11 @@ Following the steps below to run the network builder.
 # Input
 The inputs of network builder consist of: 
 * [Soundcast transit bank](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) for transit assignment. It could be generate from Soundcast model run. Please make sure you have hourly transit banks. 
-* [GTFS-PLUS transit network](https://github.com/osplanning-data-standards/GTFS-PLUS) for network of transit service. The data files including schedules, access, egress and transfer information, specified by the [GTFS-Plus Data Standards Repository](https://github.com/osplanning-data-standards/GTFS-PLUS).
+
+* 
+
+# Output
+* Output is specified by [GTFS-PLUS transit network](https://github.com/osplanning-data-standards/GTFS-PLUS) for network of transit service. The data files including schedules, access, egress and transfer information.
 
 NOTE: [GTFS-Plus Data Standards Repository](https://github.com/osplanning-data-standards/GTFS-PLUS) is a draft specification and still under development.
 
