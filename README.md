@@ -37,7 +37,7 @@ Run the [configure file](https://github.com/psrc/fast-trips_network_builder/blob
 NOTE: Please keep transit network time of day bank setting consistent with [transit demand](https://github.com/psrc/fast-trips_demand_converter). By doing this, we won't have any transit time conflict in the fast-trips model run. 
 
 # License
-This project is licensed under 
+This project is licensed under [Apache 2.0](https://github.com/psrc/fast-trips_network_builder/blob/Angela/LICENSE.md)
 
 
 
