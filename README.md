@@ -15,8 +15,11 @@ Transit Network Design Specification v0.2, [technical memo](http://fast-trips.mt
 
 # Related Project
 [fast-trips](https://github.com/BayAreaMetro/fast-trips)
+
 [Soundcast](https://github.com/psrc/soundcast)
+
 [GTFS-PLUS](https://github.com/osplanning-data-standards/GTFS-PLUS)
+
 [fast-trips Demand Converter](https://github.com/psrc/fast-trips_demand_converter)
 
 # Setup
