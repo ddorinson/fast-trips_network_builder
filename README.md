@@ -31,7 +31,23 @@ Following the steps below to run the network builder.
 The inputs of network builder consist of: 
 * [Soundcast transit bank](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) for transit assignment. It could be generate from Soundcast model run. Please make sure you have hourly transit banks. 
 
-* 
+* A network builder MUST include the following input files:
+
+Filename 			| Description										
+----------			| -------------										
+[`fare_id.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_id.csv)	| fare id									
+[`stop_zones.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/stop_zones.csv)		| stop zones		
+[`fare_rules_ft.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_rules_ft.csv)| fair rules					
+[`fare_attributes.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_attributes.csv)				| fare attributes								
+[`fare_attributes_ft.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_attributes_ft.csv)		| fare attributes for fast trips		
+[`fare_transfer_rules.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_transfer_rules.csvd)			| fare transfer rules									
+[`vehicles.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/vehicles.csv)		| type of vehicles				
+[`timed_transfers.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/timed_transfers.csv)				| transfer time								
+[`line_attribtes.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/line_attributes.csv)		| Get TAZ Nodes for walk access				
+[`gtfs_shapeID_to_lineID.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/gtfs_shapeID_to_lineID.csv)	| Shape ID to model route crosswalk  		
+[`sc_headways.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/sc_headways.csv)	| optional, generate gtfs_shapeID_to_lineID.csv									
+[`hourly_trips33.txt`](/files/agency.md)			| optional, generate gtfs_shapeID_to_lineID.csv									
+
 
 # Output
 * Output is specified by [GTFS-PLUS transit network](https://github.com/osplanning-data-standards/GTFS-PLUS) for network of transit service. The data files including schedules, access, egress and transfer information.
