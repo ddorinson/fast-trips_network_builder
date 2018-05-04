@@ -55,7 +55,7 @@ Filename 			| Description
 NOTE: [GTFS-Plus Data Standards Repository](https://github.com/osplanning-data-standards/GTFS-PLUS) is a draft specification and still under development.
 
 # Getting Started
-Run the [configure file](https://github.com/psrc/fast-trips_network_builder/blob/master/config/input_configuration.py)under python 2.7 environment. 
+Run the [configure file](https://github.com/psrc/fast-trips_network_builder/blob/master/config/input_configuration.py) under python 2.7 environment. 
 
 NOTE: Please keep transit network time of day bank setting consistent with [transit demand](https://github.com/psrc/fast-trips_demand_converter). By doing this, we won't have any transit time conflict in the fast-trips model run. 
 
