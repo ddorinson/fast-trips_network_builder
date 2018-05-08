@@ -1,5 +1,5 @@
 # fast-trips network builder 
-This repository is to provide all the supply-side network input files for [fast-trips](http://fast-trips.mtc.ca.gov/). A [GTFS-PLUS transit network](https://developers.google.com/transit/gtfs/) consists of [transit assignment data files](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) from [Soundcast](https://github.com/psrc/soundcast/wiki) that together describe a network of transit service. 
+This repository contains scripts and sample input files needed to build the supply-side network input files for [fast-trips](http://fast-trips.mtc.ca.gov/) based on the [Soundcast](https://github.com/psrc/soundcast/wiki) travel demand model.  It uses [transit assignment data files](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) from Soundcast to build a set of files that together describe a network of transit service according to the [GTFS-PLUS standard](https://github.com/osplanning-data-standards/GTFS-PLUS). 
 
 
 **version**: 0.0.1  
@@ -11,9 +11,9 @@ This repository is to provide all the supply-side network input files for [fast-
  * Angela Yang (Puget Sound Regional Council) 
 
 # Full Documentation
-Transit Network Design Specification v0.2, [technical memo](http://fast-trips.mtc.ca.gov/library/T2-NetworkDesign-StaticCopy-Sept2015V0.2.pdf). 
+Fast-Trips Transit Network Design Specification v0.2, [technical memo](http://fast-trips.mtc.ca.gov/library/T2-NetworkDesign-StaticCopy-Sept2015V0.2.pdf). 
 
-# Related Project
+# Related Projects
 [fast-trips](https://github.com/BayAreaMetro/fast-trips)
 
 [Soundcast](https://github.com/psrc/soundcast)
@@ -22,14 +22,14 @@ Transit Network Design Specification v0.2, [technical memo](http://fast-trips.mt
 
 [fast-trips Demand Converter](https://github.com/psrc/fast-trips_demand_converter)
 
-# Setup
-Following the steps below to run the network builder. 
+# Getting Started
+Follow the steps below to prepare to run the network builder: 
  * Download and install [Anaconda python 2.7 package](https://www.anaconda.com/download/)
  * If you need run Soundcast to get transit assignment data files, follow the [Soundcast setup steps](https://github.com/psrc/soundcast/wiki/Soundcast-Install)
  
 # Input
-The inputs of network builder consist of: 
-* [Soundcast transit bank](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) for transit assignment. It could be generate from Soundcast model run. Please make sure you have hourly transit banks. 
+The inputs to the network builder consist of: 
+* [Soundcast transit bank](https://github.com/psrc/soundcast/blob/5ce7547a8384df367c92d3e48c54eea86228f47e/scripts/summarize/standard/daily_bank.py) for transit assignment. The files are generated from a Soundcast model run. Please make sure you use hourly transit banks. 
 
 * A network builder MUST include the following input files:
 
@@ -37,27 +37,37 @@ Filename 			| Description
 ----------			| -------------										
 [`fare_id.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_id.csv)	| fare id									
 [`stop_zones.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/stop_zones.csv)		| stop zones		
-[`fare_rules_ft.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_rules_ft.csv)| fair rules					
+[`fare_rules_ft.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_rules_ft.csv)| fare rules					
 [`fare_attributes.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_attributes.csv)				| fare attributes								
 [`fare_attributes_ft.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_attributes_ft.csv)		| fare attributes for fast trips		
 [`fare_transfer_rules.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/fares/fare_transfer_rules.csvd)			| fare transfer rules									
 [`vehicles.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/vehicles.csv)		| type of vehicles				
 [`timed_transfers.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/timed_transfers.csv)				| transfer time								
-[`line_attribtes.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/line_attributes.csv)		| Get TAZ Nodes for walk access				
+[`line_attributes.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/line_attributes.csv)		| Get TAZ Nodes for walk access				
 [`gtfs_shapeID_to_lineID.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/gtfs_shapeID_to_lineID.csv)	| Shape ID to model route crosswalk  		
-[`sc_headways.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/sc_headways.csv)	| optional, generate gtfs_shapeID_to_lineID.csv									
-`hourly_trips33.txt`			| optional, generate gtfs_shapeID_to_lineID.csv									
 
+*Note: the first six files in this list should be in a sub-folder named `fares`*
+
+* The file [gtfs_shapeID_to_lineID.csv](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/gtfs_shapeID_to_lineID.csv) is not a Soundcast output.  It is created from a separate script, [reformat_GTFS_file.py](https://github.com/psrc/fast-trips_network_builder/blob/master/reformat_GTFS_file.py), which requires these two files as inputs:
+
+Filename 			| Description										
+----------			| -------------										
+[`sc_headways.csv`](https://github.com/psrc/fast-trips_network_builder/blob/master/inputs/sc_headways.csv)	| generate gtfs_shapeID_to_lineID.csv									
+[`hourly_trips33.txt`]			| generate gtfs_shapeID_to_lineID.csv									
+
+# Building the Network
+1. Edit and run the [configuration file](https://github.com/psrc/fast-trips_network_builder/blob/master/config/input_configuration.py) under python 2.7 environment to set global variables and defaults.
+
+*NOTE: Please keep the transit network time of day bank setting consistent with your selection for the [transit demand converter](https://github.com/psrc/fast-trips_demand_converter). This will avoid transit time conflicts between network inputs and demand inputs during the fast-trips model run.* 
+
+2. Run the [builder file](https://github.com/psrc/fast-trips_network_builder/blob/master/config/build_network.py) to generate the GTFS-PLUS .txt files.
+
+3. If desired, run the [validation script](https://github.com/psrc/fast-trips_network_builder/blob/master/config/trip_validation.py).
 
 # Output
-* Output is specified by [GTFS-PLUS transit network](https://github.com/osplanning-data-standards/GTFS-PLUS) for network of transit service. The data files including schedules, access, egress and transfer information.
+* The output from the network builder is organized as a [GTFS-PLUS transit network](https://github.com/osplanning-data-standards/GTFS-PLUS) with data files including schedules, access, egress, and transfer information.
 
 NOTE: [GTFS-Plus Data Standards Repository](https://github.com/osplanning-data-standards/GTFS-PLUS) is a draft specification and still under development.
-
-# Getting Started
-Run the [configure file](https://github.com/psrc/fast-trips_network_builder/blob/master/config/input_configuration.py) under python 2.7 environment. 
-
-NOTE: Please keep transit network time of day bank setting consistent with [transit demand](https://github.com/psrc/fast-trips_demand_converter). By doing this, we won't have any transit time conflict in the fast-trips model run. 
 
 # License
 This project is licensed under [Apache 2.0](https://github.com/psrc/fast-trips_network_builder/blob/Angela/LICENSE.md)
